@@ -102,7 +102,30 @@
 
     <div id="main" class="main">
         <h1>Canlı İzle Sayfası</h1>
-        <p>Menüden bir seçenek seçin.</p>
+        <p>Menüden bir seçenek seçin veya canlı yayınları görüntüleyin.</p>
+
+        <div style="margin: 20px 0; padding: 20px; border: 1px solid #ff0000; border-radius: 5px; background-color: #ffffff; color: #000000;">
+            <h2>Şu Anda Canlı Yayınlar</h2>
+            <div id="liveStreamsList">
+                <!-- Live streams will be loaded here -->
+            </div>
+        </div>
+
+        <div id="currentStream" style="display: none; margin: 20px 0; padding: 20px; border: 1px solid #ff0000; border-radius: 5px; background-color: #000000; color: #ffffff;">
+            <h2 id="streamTitle">Yayın Başlığı</h2>
+            <video id="remoteVideo" autoplay style="width: 100%; max-width: 640px; border: 2px solid #ff0000;"></video>
+            <div style="margin-top: 20px;">
+                <button class="button" onclick="likeStream()">Beğen</button>
+                <button class="button" onclick="addToFavorites()">Favorilere Ekle</button>
+                <button class="button" onclick="shareStream()">Paylaş</button>
+            </div>
+            <div style="margin-top: 10px;">
+                <input type="text" id="chatInput" placeholder="Mesajınızı yazın..." style="padding: 10px; width: 70%;">
+                <button class="button" onclick="sendMessage()">Gönder</button>
+            </div>
+            <div id="chatMessages" style="margin-top: 10px; height: 200px; overflow-y: auto; border: 1px solid #ff0000; padding: 10px;"></div>
+        </div>
+
         <div id="kategoriler" class="content">
             <h2>Normal Ürün Kategorileri</h2>
             <ul>
@@ -125,7 +148,29 @@
         </div>
     </div>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
+        const socket = io('http://localhost:3001'); // Connect to live stream server
+        let consumerTransport;
+        let device;
+        let currentStream;
+        let remoteStream;
+        let chatMessages = [];
+
+        socket.on('connect', () => {
+            console.log('Connected to live stream server');
+            loadLiveStreams();
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from live stream server');
+        });
+
+        socket.on('connect_error', (error) => {
+            console.error('Connection error:', error);
+            alert('Sunucuya bağlanılamadı: ' + error.message);
+        });
+
         function openNav() {
             document.getElementById("mySidebar").style.left = "0";
             document.getElementById("main").style.marginLeft = "250px";
@@ -144,6 +189,122 @@
             document.getElementById(id).style.display = 'block';
             closeNav();
         }
+
+        function loadLiveStreams() {
+            // Get available producers (live streams)
+            socket.emit('getProducers', (producers) => {
+                const liveStreamsList = document.getElementById('liveStreamsList');
+                liveStreamsList.innerHTML = '';
+
+                if (producers.length === 0) {
+                    liveStreamsList.innerHTML = '<p>Şu anda canlı yayın yok.</p>';
+                    return;
+                }
+
+                producers.forEach(producer => {
+                    const streamItem = document.createElement('div');
+                    streamItem.style.border = '1px solid #ff0000';
+                    streamItem.style.padding = '10px';
+                    streamItem.style.margin = '10px 0';
+                    streamItem.style.backgroundColor = '#f8f9fa';
+                    streamItem.style.borderRadius = '5px';
+                    streamItem.style.cursor = 'pointer';
+                    streamItem.innerHTML = `
+                        <h3>Canlı Yayın ${producer.id}</h3>
+                        <p>Tür: ${producer.kind}</p>
+                        <span style="color: red;">● Canlı</span>
+                    `;
+                    streamItem.onclick = () => watchStream(producer.id);
+                    liveStreamsList.appendChild(streamItem);
+                });
+            });
+        }
+
+        async function watchStream(producerId) {
+            document.getElementById('streamTitle').textContent = `Canlı Yayın ${producerId}`;
+            document.getElementById('currentStream').style.display = 'block';
+
+            // Get router RTP capabilities
+            socket.emit('getRouterRtpCapabilities', async (rtpCapabilities) => {
+                try {
+                    device = new MediasoupClient.Device();
+                    await device.load({ routerRtpCapabilities: rtpCapabilities });
+
+                    // Create consumer transport
+                    socket.emit('createConsumerTransport', async (transportParams) => {
+                        consumerTransport = device.createRecvTransport(transportParams);
+
+                        consumerTransport.on('connect', async ({ dtlsParameters }, callback) => {
+                            socket.emit('connectConsumerTransport', { dtlsParameters }, callback);
+                        });
+
+                        // Consume the stream
+                        socket.emit('consume', { producerId }, async (consumerParams) => {
+                            if (consumerParams.error) {
+                                alert('Yayın tüketme hatası: ' + consumerParams.error);
+                                return;
+                            }
+
+                            const consumer = await consumerTransport.consume(consumerParams);
+
+                            // Resume consumer
+                            socket.emit('resumeConsumer', { consumerId: consumer.id });
+
+                            // Create remote stream and play
+                            remoteStream = new MediaStream([consumer.track]);
+                            const remoteVideo = document.getElementById('remoteVideo');
+                            remoteVideo.srcObject = remoteStream;
+                        });
+                    });
+                } catch (error) {
+                    console.error('Error watching stream:', error);
+                    alert('Yayın izleme hatası: ' + error.message);
+                }
+            });
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (message) {
+                const msg = { user: 'İzleyici', message: message, timestamp: new Date() };
+                chatMessages.push(msg);
+                displayChatMessage(msg);
+                input.value = '';
+            }
+        }
+
+        function displayChatMessage(msg) {
+            const chatMessagesDiv = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.style.margin = '5px 0';
+            msgDiv.innerHTML = `<strong>${msg.user}:</strong> ${msg.message}`;
+            chatMessagesDiv.appendChild(msgDiv);
+            chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+        }
+
+        function likeStream() {
+            alert('Yayın beğenildi!');
+        }
+
+        function addToFavorites() {
+            alert('Yayın favorilere eklendi!');
+        }
+
+        function shareStream() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Yayın linki kopyalandı!');
+            });
+        }
+
+        // Enter key for chat
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/mediasoup-client@3.6.37/lib/index.min.js"></script>
 </body>
 </html>

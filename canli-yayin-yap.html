@@ -43,13 +43,19 @@
             overflow-y: auto;
             width: 300px;
             margin: 0 auto;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
         }
         .productItem {
             padding: 10px;
             cursor: pointer;
+            border-bottom: 1px solid #ddd;
         }
         .productItem:hover {
             background-color: #f0f0f0;
+        }
+        .productItem:last-child {
+            border-bottom: none;
         }
         #subtitles {
             position: fixed;
@@ -69,29 +75,123 @@
     <h1><i>Canlı Yayın Yap</i></h1>
     <p>Kategori ve ürünü seçin, sloganınızı yazın.</p>
 
-    <label for="product">Numune Ürün Seçin:</label><br>
-    <select id="product">
-        <option value="">Seçin</option>
-    </select><br>
+    <label for="product">Numune Ürün Seçin (İlk 3 harfi yazın):</label><br>
+    <input type="text" id="product" placeholder="Ürün adı yazın..." autocomplete="off"><br>
+    <div id="productList" style="display: none; background-color: #ffffff; color: #000000; max-height: 200px; overflow-y: auto; width: 300px; margin: 0 auto; border: 1px solid #ff0000; border-radius: 5px;"></div><br>
 
     <label for="slogan">Slogan / Cümleler (Yayın altında görünecek):</label><br>
     <textarea id="slogan" rows="4" placeholder="Sloganınızı yazın..."></textarea><br>
 
-    <button class="button" onclick="startBroadcast()">Bas Sat</button>
+    <button class="button" onclick="startBroadcast()" id="broadcastBtn">Bas Sat</button>
     <a href="canli-yayin-odeme.html" class="button">Geri</a>
 
     <div id="subtitles"></div>
 
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const socket = io('http://localhost:3001', {
+            transports: ['polling', 'websocket']
+        }); // Connect to live stream server
+        const currentUser = JSON.parse(localStorage.getItem('currentUser')) || { email: 'test@toptancilar.com', panel: 'toptancilar' };
         const agreements = JSON.parse(localStorage.getItem('sampleAgreements')) || [];
         const acceptedAgreements = agreements.filter(a => a.seller === currentUser.email && a.status === 'accepted');
-        const productSelect = document.getElementById('product');
-        acceptedAgreements.forEach(agreement => {
-            const option = document.createElement('option');
-            option.value = agreement.product;
-            option.textContent = agreement.product + ' (Tedarikçi: ' + agreement.supplier + ')';
-            productSelect.appendChild(option);
+        const productInput = document.getElementById('product');
+        const productList = document.getElementById('productList');
+
+        // Sample products for testing
+        const sampleProducts = [
+            { name: 'Demo Ürün', category: 'Elektronik' },
+            { name: 'Test Telefon', category: 'Elektronik' },
+            { name: 'Deneme Bilgisayar', category: 'Elektronik' },
+            { name: 'Örnek Giyim', category: 'Giyim' },
+            { name: 'Test Ayakkabı', category: 'Giyim' },
+            { name: 'Deneme Çanta', category: 'Giyim' }
+        ];
+
+        // Add sample products if no agreements exist
+        if (acceptedAgreements.length === 0) {
+            sampleProducts.forEach(prod => {
+                const sampleAgreement = {
+                    product: prod.name,
+                    supplier: 'Test Tedarikçi',
+                    seller: currentUser ? currentUser.email : 'test@toptancilar.com',
+                    commissionRate: 10,
+                    status: 'accepted',
+                    category: prod.category
+                };
+                agreements.push(sampleAgreement);
+            });
+            localStorage.setItem('sampleAgreements', JSON.stringify(agreements));
+            acceptedAgreements.push(...agreements);
+        }
+
+        // Function to show filtered products
+        function showProductList(filter = '') {
+            productList.innerHTML = '';
+            const filteredProducts = acceptedAgreements.filter(agreement =>
+                agreement.product.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            if (filteredProducts.length > 0 && filter.length >= 1) {
+                productList.style.display = 'block';
+                filteredProducts.forEach(agreement => {
+                    const item = document.createElement('div');
+                    item.className = 'productItem';
+                    item.textContent = agreement.product + ' (' + agreement.category + ')';
+                    item.onclick = () => {
+                        productInput.value = agreement.product;
+                        productList.style.display = 'none';
+                    };
+                    productList.appendChild(item);
+                });
+            } else {
+                productList.style.display = 'none';
+            }
+        }
+
+        // Event listener for product input
+        productInput.addEventListener('input', (e) => {
+            showProductList(e.target.value);
+        });
+
+        // Hide list when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!productInput.contains(e.target) && !productList.contains(e.target)) {
+                productList.style.display = 'none';
+            }
+        });
+
+        let localStream;
+        let producerTransport;
+        let device;
+        let isBroadcasting = false;
+
+        let statusDiv = document.createElement('div');
+        statusDiv.id = 'status';
+        statusDiv.style.cssText = 'margin: 20px 0; padding: 10px; border-radius: 5px; background-color: #333; color: #fff;';
+        statusDiv.textContent = 'Bağlantı bekleniyor...';
+        document.body.insertBefore(statusDiv, document.querySelector('h1').nextSibling);
+
+        // Initially disable broadcast button until connected
+        const broadcastBtn = document.getElementById('broadcastBtn');
+        broadcastBtn.disabled = true;
+        broadcastBtn.textContent = 'Bağlantı bekleniyor...';
+
+        socket.on('connect', () => {
+            statusDiv.textContent = 'Sunucuya bağlandı - Yayın hazır!';
+            statusDiv.style.backgroundColor = '#4CAF50';
+            broadcastBtn.disabled = false;
+            broadcastBtn.textContent = 'Bas Sat';
+        });
+
+        socket.on('disconnect', () => {
+            statusDiv.textContent = 'Sunucu bağlantısı kesildi';
+            statusDiv.style.backgroundColor = '#f44336';
+        });
+
+        socket.on('connect_error', (error) => {
+            statusDiv.textContent = 'Bağlantı hatası: ' + error.message;
+            statusDiv.style.backgroundColor = '#f44336';
         });
 
         // Mock AI Translation Dictionary
@@ -125,72 +225,188 @@
             return text; // Fallback to original
         }
 
-        function startBroadcast() {
+        async function startBroadcast() {
+            console.log('startBroadcast called');
             const product = document.getElementById('product').value;
             const slogan = document.getElementById('slogan').value;
-            if (product && slogan) {
-                // Find the agreement
-                const agreement = acceptedAgreements.find(a => a.product === product);
-                if (agreement) {
-                    // Find product price from products data
-                    const allProducts = [];
-                    ['hammadeciler', 'ureticiler', 'toptancilar', 'saticilar'].forEach(panel => {
-                        const products = JSON.parse(localStorage.getItem('products-' + panel)) || [];
-                        allProducts.push(...products);
-                    });
-                    const prod = allProducts.find(p => p.name === product);
-                    if (prod) {
-                        const commissionAmount = prod.price * (agreement.commissionRate / 100);
-                        const commissionSale = {
-                            product: product,
-                            seller: currentUser.email,
-                            supplier: agreement.supplier,
-                            commissionAmount: commissionAmount,
-                            date: new Date().toISOString(),
-                            status: 'unpaid'
-                        };
-                        const commissionSales = JSON.parse(localStorage.getItem('commissionSales')) || [];
-                        commissionSales.push(commissionSale);
-                        localStorage.setItem('commissionSales', JSON.stringify(commissionSales));
-                        alert('Canlı yayın başlatıldı! Ürün: ' + product + ', Slogan: ' + slogan + ', Komisyon: ' + commissionAmount + ' TL');
+            console.log('Product:', product, 'Slogan:', slogan);
 
-                        // Simulate real-time subtitles with translation
-                        const viewerLang = 'es'; // Mock viewer language, in real: get from user profile
-                        const broadcasterLang = 'tr'; // Mock broadcaster language
-
-                        // Simulate translated subtitles
-                        const subtitleTexts = [
-                            getTranslation('Welcome to the live broadcast!', viewerLang),
-                            getTranslation('This product is amazing!', viewerLang),
-                            getTranslation('Buy now!', viewerLang)
-                        ];
-
-                        let index = 0;
-                        const subtitleInterval = setInterval(() => {
-                            const subtitlesDiv = document.getElementById('subtitles');
-                            subtitlesDiv.textContent = subtitleTexts[index % subtitleTexts.length];
-                            subtitlesDiv.style.display = 'block';
-                            index++;
-
-                            // For broadcaster, show in their language
-                            if (broadcasterLang !== viewerLang) {
-                                console.log('Translated for broadcaster:', getTranslation(subtitleTexts[index % subtitleTexts.length], broadcasterLang));
-                            }
-                        }, 3000); // Change subtitle every 3 seconds
-
-                        setTimeout(() => {
-                            clearInterval(subtitleInterval);
-                            document.getElementById('subtitles').style.display = 'none';
-                        }, 15000); // Stop after 15 seconds for demo
-                    } else {
-                        alert('Ürün fiyatı bulunamadı.');
-                    }
-                } else {
-                    alert('Anlaşma bulunamadı.');
-                }
-            } else {
+            if (!product || !slogan) {
                 alert('Lütfen ürün seçin ve slogan yazın.');
+                return;
             }
+
+            // Update status and button
+            statusDiv.textContent = 'Kamera/mikrofon erişimi isteniyor...';
+            statusDiv.style.backgroundColor = '#ff9800';
+            broadcastBtn.disabled = true;
+            broadcastBtn.textContent = 'Yayın hazırlanıyor...';
+            console.log('Button disabled during broadcast setup');
+
+            try {
+                // Get camera and microphone access
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
+                });
+
+                statusDiv.textContent = 'Medya erişimi başarılı, yayın hazırlanıyor...';
+                statusDiv.style.backgroundColor = '#2196F3';
+
+                // Get router RTP capabilities
+                socket.emit('getRouterRtpCapabilities', async (rtpCapabilities) => {
+                    try {
+                        // Load Mediasoup client device
+                        device = new MediasoupClient.Device();
+                        await device.load({ routerRtpCapabilities: rtpCapabilities });
+
+                        // Create producer transport
+                        socket.emit('createProducerTransport', async (transportParams) => {
+                            console.log('Transport params received:', transportParams);
+                            producerTransport = device.createSendTransport(transportParams);
+
+                            producerTransport.on('connect', async ({ dtlsParameters }, callback) => {
+                                socket.emit('connectProducerTransport', { dtlsParameters }, callback);
+                            });
+
+                            producerTransport.on('produce', async ({ kind, rtpParameters }, callback) => {
+                                socket.emit('produce', { kind, rtpParameters }, callback);
+                            });
+
+                            // Produce video track
+                            const videoTrack = localStream.getVideoTracks()[0];
+                            await producerTransport.produce({ track: videoTrack });
+
+                            // Produce audio track
+                            const audioTrack = localStream.getAudioTracks()[0];
+                            await producerTransport.produce({ track: audioTrack });
+
+                            isBroadcasting = true;
+                            statusDiv.textContent = 'Yayın başladı! İzleyiciler bağlanabilir.';
+                            statusDiv.style.backgroundColor = '#4CAF50';
+                            broadcastBtn.disabled = true;
+                            broadcastBtn.textContent = 'Yayın aktif';
+
+                            // Handle commission and agreement logic
+                            const agreement = acceptedAgreements.find(a => a.product === product);
+                            if (agreement) {
+                                // For testing, use a default price if product not found
+                                let prod = null;
+                                const allProducts = [];
+                                ['hammadeciler', 'ureticiler', 'toptancilar', 'saticilar'].forEach(panel => {
+                                    const products = JSON.parse(localStorage.getItem('products-' + panel)) || [];
+                                    allProducts.push(...products);
+                                });
+                                prod = allProducts.find(p => p.name === product);
+
+                                // If no real product found, create a test product
+                                if (!prod) {
+                                    prod = { name: product, price: 100 };
+                                }
+
+                                const commissionAmount = prod.price * (agreement.commissionRate / 100);
+                                const commissionSale = {
+                                    product: product,
+                                    seller: currentUser.email,
+                                    supplier: agreement.supplier,
+                                    commissionAmount: commissionAmount,
+                                    date: new Date().toISOString(),
+                                    status: 'unpaid'
+                                };
+                                const commissionSales = JSON.parse(localStorage.getItem('commissionSales')) || [];
+                                commissionSales.push(commissionSale);
+                                localStorage.setItem('commissionSales', JSON.stringify(commissionSales));
+
+                            // Log activity for hareket-takip.html
+                            const activity = {
+                                panel: currentUser.panel,
+                                action: 'Canlı Yayın Başlatıldı - Ürün: ' + product,
+                                time: new Date().toISOString()
+                            };
+                            const activities = JSON.parse(localStorage.getItem('liveBroadcastActivities')) || [];
+                            activities.push(activity);
+                            localStorage.setItem('liveBroadcastActivities', JSON.stringify(activities));
+
+                            alert('Canlı yayın başlatıldı! Ürün: ' + product + ', Slogan: ' + slogan + ', Komisyon: ' + commissionAmount + ' TL');
+
+                            // Start subtitles
+                            startSubtitles(slogan);
+                            } else {
+                                // Log activity for hareket-takip.html even without agreement
+                                const activity = {
+                                    panel: currentUser.panel,
+                                    action: 'Canlı Yayın Başlatıldı - Ürün: ' + product,
+                                    time: new Date().toISOString()
+                                };
+                                const activities = JSON.parse(localStorage.getItem('liveBroadcastActivities')) || [];
+                                activities.push(activity);
+                                localStorage.setItem('liveBroadcastActivities', JSON.stringify(activities));
+
+                                alert('Test için ürün seçildi. Yayın başlatılıyor...');
+                                // For testing without agreements
+                                alert('Canlı yayın başlatıldı! Ürün: ' + product + ', Slogan: ' + slogan);
+                                startSubtitles(slogan);
+                            }
+                        });
+                            } catch (error) {
+                                statusDiv.textContent = 'Yayın hatası: ' + (error.message || error);
+                                statusDiv.style.backgroundColor = '#f44336';
+                                alert('Yayın başlatma hatası: ' + (error.message || error));
+                            }
+                });
+            } catch (error) {
+                statusDiv.textContent = 'Medya erişimi reddedildi';
+                statusDiv.style.backgroundColor = '#f44336';
+                broadcastBtn.disabled = false;
+                broadcastBtn.textContent = 'Tekrar Dene';
+                alert('Kamera/mikrofon erişimi reddedildi: ' + (error.message || error));
+                return;
+            }
+        }
+
+        function startSubtitles(slogan) {
+            const viewerLang = 'es'; // Mock viewer language
+            const broadcasterLang = 'tr'; // Mock broadcaster language
+
+            const subtitleTexts = [
+                getTranslation('Welcome to the live broadcast!', viewerLang),
+                getTranslation(slogan, viewerLang),
+                getTranslation('This product is amazing!', viewerLang),
+                getTranslation('Buy now!', viewerLang)
+            ];
+
+            let index = 0;
+            const subtitleInterval = setInterval(() => {
+                const subtitlesDiv = document.getElementById('subtitles');
+                subtitlesDiv.textContent = subtitleTexts[index % subtitleTexts.length];
+                subtitlesDiv.style.display = 'block';
+                index++;
+            }, 5000); // Change subtitle every 5 seconds
+
+            // Stop subtitles after 2 minutes for demo
+            setTimeout(() => {
+                clearInterval(subtitleInterval);
+                document.getElementById('subtitles').style.display = 'none';
+                stopBroadcast();
+            }, 120000);
+        }
+
+        function stopBroadcast() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            if (producerTransport) {
+                producerTransport.close();
+            }
+            isBroadcasting = false;
+            alert('Yayın durduruldu.');
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mediasoup-client@3.6.37/lib/index.min.js"></script>
+    <script>
+        // Ensure MediasoupClient is available globally
+        if (typeof MediasoupClient === 'undefined') {
+            console.error('MediasoupClient not loaded');
         }
     </script>
 </body>

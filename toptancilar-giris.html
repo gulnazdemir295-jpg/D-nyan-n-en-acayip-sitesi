@@ -35,7 +35,29 @@
 <body>
     <h1><i>Toptancılar Giriş Sayfası</i></h1>
     <p>Giriş yapmak için lütfen bilgilerinizi girin.</p>
-    <a href="toptancilar-panel.html" class="button">Giriş Yap</a>
+    <form id="loginForm">
+        <label>E-posta: <input type="email" id="loginEmail" required></label><br>
+        <label>Şifre: <input type="password" id="loginPassword" required></label><br>
+        <button type="submit" class="button">Giriş Yap</button>
+    </form>
     <a href="index.html" class="button">Ana Sayfa</a>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const approvedUsers = JSON.parse(localStorage.getItem('approved-users')) || [];
+            const user = approvedUsers.find(u => u.email === email && u.tempPassword === password && u.panel === 'toptancilar');
+
+            if (user) {
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                window.location.href = 'toptancilar-panel.html';
+            } else {
+                alert('Geçersiz e-posta veya şifre.');
+            }
+        });
+    </script>
 </body>
 </html>

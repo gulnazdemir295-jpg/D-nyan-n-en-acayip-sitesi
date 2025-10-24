@@ -165,6 +165,20 @@
                 return;
             }
 
+            // Test user for saticilar
+            if (identifier === 'test@satici.com' && password === 'test123') {
+                const testUser = {
+                    email: 'test@satici.com',
+                    name: 'Test Satıcı',
+                    company: 'Test Şirketi',
+                    panel: 'saticilar',
+                    tempPassword: 'test123'
+                };
+                localStorage.setItem('currentUser', JSON.stringify(testUser));
+                window.location.href = 'saticilar-panel.html';
+                return;
+            }
+
             const users = JSON.parse(localStorage.getItem('approved-users')) || [];
             const user = users.find(u => (u.email === identifier || u.phone === identifier) && u.tempPassword === password);
             if (user) {

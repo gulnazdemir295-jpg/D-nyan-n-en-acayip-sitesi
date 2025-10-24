@@ -84,26 +84,7 @@
     <a href="admin-panel.html" class="button">Admin Paneli</a>
     <a href="index.html" class="button">Ana Sayfa</a>
 
-    <div id="documentModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);">
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #ffffff; padding: 20px; border-radius: 5px; max-width: 80%; max-height: 80%; overflow: auto;">
-            <span id="closeModal" style="position: absolute; top: 10px; right: 20px; font-size: 30px; cursor: pointer;">&times;</span>
-            <img id="documentImage" src="" alt="Belge" style="max-width: 100%; max-height: 100%;">
-        </div>
-    </div>
 
-    <div id="approvalModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);">
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #ffffff; padding: 20px; border-radius: 5px; max-width: 600px;">
-            <span id="closeApprovalModal" style="position: absolute; top: 10px; right: 20px; font-size: 30px; cursor: pointer;">&times;</span>
-            <h2>Onaylama Özeti</h2>
-            <p id="approvalName"></p>
-            <p id="approvalWarning" style="color: #ff0000;"></p>
-            <p>Geçici Şifre: <span id="approvalPassword"></span></p>
-            <p>Telefon: <span id="approvalPhone"></span></p>
-            <p>E-posta: <span id="approvalEmail"></span></p>
-            <button class="button" onclick="sendEmail()">E-posta Gönder</button>
-            <button class="button" onclick="closeApprovalModal()">Çık</button>
-        </div>
-    </div>
 
     <script>
         function loadApplications() {
@@ -120,13 +101,13 @@
                         <td>${app.company}</td>
                         <td>${new Date(app.submittedAt).toLocaleString('tr-TR')}</td>
                         <td>
-                            <button class="button" onclick="viewDocument(${index}, 'idCopy')">Kimlik</button>
-                            <button class="button" onclick="viewDocument(${index}, 'taxCertificate')">Vergi Levhası</button>
-                            <button class="button" onclick="viewDocument(${index}, 'signatureCircular')">İmza Sirküleri</button>
+                            <a href="belge-goruntule.html?index=${index}&type=idCopy" class="button">Kimlik</a>
+                            <a href="belge-goruntule.html?index=${index}&type=taxCertificate" class="button">Vergi Levhası</a>
+                            <a href="belge-goruntule.html?index=${index}&type=signatureCircular" class="button">İmza Sirküleri</a>
                         </td>
                         <td>
-                            <button class="button approve" onclick="approveApplication(${index})">Onayla</button>
-                            <button class="button reject" onclick="rejectApplication(${index})">Reddet</button>
+                            <a href="onayla.html?index=${index}" class="button approve">Onayla</a>
+                            <a href="reddet.html?index=${index}" class="button reject">Reddet</a>
                         </td>
                     `;
                     tbody.appendChild(row);
@@ -134,70 +115,50 @@
             });
         }
 
-        function approveApplication(index) {
-            const applications = JSON.parse(localStorage.getItem('pending-applications')) || [];
-            const app = applications[index];
-            app.status = 'approved';
-            app.tempPassword = generatePassword();
-            // Move to approved-users
-            const approved = JSON.parse(localStorage.getItem('approved-users')) || [];
-            approved.push(app);
-            localStorage.setItem('approved-users', JSON.stringify(approved));
-            // Remove from pending
-            applications.splice(index, 1);
-            localStorage.setItem('pending-applications', JSON.stringify(applications));
-            // Show approval modal
-            document.getElementById('approvalName').textContent = `Ad Soyad: ${app.name}`;
-            document.getElementById('approvalWarning').textContent = app.panel === 'musteriler' ? 'Müşteridir' : `Firma: ${app.company}`;
-            document.getElementById('approvalPassword').textContent = app.tempPassword;
-            document.getElementById('approvalPhone').textContent = app.phone;
-            document.getElementById('approvalEmail').textContent = app.email;
-            document.getElementById('approvalModal').style.display = 'block';
-            loadApplications();
+
+
+        // Sample data for testing
+        if (!localStorage.getItem('pending-applications')) {
+            const sampleApplications = [
+                {
+                    panel: 'musteriler',
+                    name: 'Ahmet Yılmaz',
+                    email: 'ahmet@example.com',
+                    company: '',
+                    phone: '05551234567',
+                    submittedAt: new Date().toISOString(),
+                    status: 'pending',
+                    idCopy: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+                    taxCertificate: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+                    signatureCircular: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+                },
+                {
+                    panel: 'ureticiler',
+                    name: 'Mehmet Kaya',
+                    email: 'mehmet@example.com',
+                    company: 'Kaya Üretim',
+                    phone: '05559876543',
+                    submittedAt: new Date().toISOString(),
+                    status: 'pending',
+                    idCopy: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+                    taxCertificate: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+                    signatureCircular: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+                },
+                {
+                    panel: 'toptancilar',
+                    name: 'Test Toptancı',
+                    email: 'test@toptancilar.com',
+                    company: 'Test Toptan Firma',
+                    phone: '05551111111',
+                    submittedAt: new Date().toISOString(),
+                    status: 'pending',
+                    idCopy: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+                    taxCertificate: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+                    signatureCircular: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+                }
+            ];
+            localStorage.setItem('pending-applications', JSON.stringify(sampleApplications));
         }
-
-        function rejectApplication(index) {
-            const applications = JSON.parse(localStorage.getItem('pending-applications')) || [];
-            applications[index].status = 'rejected';
-            localStorage.setItem('pending-applications', JSON.stringify(applications));
-            alert('Başvuru reddedildi.');
-            loadApplications();
-        }
-
-        function generatePassword() {
-            return Math.random().toString(36).slice(-8);
-        }
-
-        function viewDocument(index, docType) {
-            const applications = JSON.parse(localStorage.getItem('pending-applications')) || [];
-            const app = applications[index];
-            if (app && app[docType]) {
-                document.getElementById('documentImage').src = app[docType];
-                document.getElementById('documentModal').style.display = 'block';
-            } else {
-                alert('Belge bulunamadı.');
-            }
-        }
-
-        document.getElementById('closeModal').addEventListener('click', function() {
-            document.getElementById('documentModal').style.display = 'none';
-        });
-
-        window.onclick = function(event) {
-            if (event.target == document.getElementById('documentModal')) {
-                document.getElementById('documentModal').style.display = 'none';
-            }
-        };
-
-        function sendEmail() {
-            alert('E-posta gönderildi.');
-        }
-
-        function closeApprovalModal() {
-            document.getElementById('approvalModal').style.display = 'none';
-        }
-
-        document.getElementById('closeApprovalModal').addEventListener('click', closeApprovalModal);
 
         window.onload = loadApplications;
     </script>

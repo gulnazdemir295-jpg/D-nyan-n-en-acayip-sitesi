@@ -108,6 +108,24 @@
         }
         updateTime();
         setInterval(updateTime, 3600000); // Update every hour
+
+        // Load live broadcast activities
+        function loadActivities() {
+            const activities = JSON.parse(localStorage.getItem('liveBroadcastActivities')) || [];
+            const tbody = document.querySelector('tbody');
+            tbody.innerHTML = '';
+            activities.slice(-10).reverse().forEach(activity => { // Show last 10 activities
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${activity.panel}</td>
+                    <td>${activity.action}</td>
+                    <td>${new Date(activity.time).toLocaleTimeString('tr-TR')}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        loadActivities();
+        setInterval(loadActivities, 60000); // Update every minute
     </script>
 </body>
 </html>
