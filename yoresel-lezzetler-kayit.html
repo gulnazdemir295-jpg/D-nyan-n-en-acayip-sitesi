@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yöresel Lezzetler Üye Ol - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+            color: #ff0000;
+        }
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .button {
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Yöresel Lezzetler Üreticisi Üye Ol</i></h1>
+    <p>Yöresel lezzetlerinizi dünyaya tanıtın.</p>
+
+    <form id="registrationForm">
+        <label>Ad Soyad: <input type="text" id="name" required></label>
+        <label>E-posta: <input type="email" id="email" required></label>
+        <label>Telefon: <input type="tel" id="phone" required></label>
+        <label>Şifre: <input type="password" id="password" required></label>
+        <label>Şifre Tekrar: <input type="password" id="confirmPassword" required></label>
+        <label>Şirket Adı: <input type="text" id="company" required></label>
+        <label>Vergi Numarası: <input type="text" id="taxNumber" required></label>
+        <label>Adres: <textarea id="address" rows="3" required></textarea></label>
+        <label>Ülke:
+            <select id="country" required>
+                <option value="">Seçin</option>
+                <option value="Türkiye">Türkiye</option>
+                <option value="İtalya">İtalya</option>
+                <option value="Yunanistan">Yunanistan</option>
+                <option value="İspanya">İspanya</option>
+                <option value="Fransa">Fransa</option>
+                <option value="Japonya">Japonya</option>
+                <option value="Meksika">Meksika</option>
+                <option value="Hindistan">Hindistan</option>
+                <option value="Çin">Çin</option>
+                <option value="Brezilya">Brezilya</option>
+            </select>
+        </label>
+        <label>Bölge/Şehir: <input type="text" id="region" placeholder="Örn: Marmara, İstanbul" required></label>
+        <label>Kimlik Fotokopisi: <input type="file" id="idCopy" accept="image/*"></label>
+        <label>Vergi Levhası: <input type="file" id="taxCertificate" accept="image/*"></label>
+        <label>İmza Sirküleri: <input type="file" id="signatureCircular" accept="image/*"></label>
+        <button type="submit" class="button">Üye Ol</button>
+    </form>
+
+    <a href="index.html" class="button">Ana Sayfa</a>
+
+    <script>
+        document.getElementById('registrationForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const company = document.getElementById('company').value;
+            const taxNumber = document.getElementById('taxNumber').value;
+            const address = document.getElementById('address').value;
+            const country = document.getElementById('country').value;
+            const region = document.getElementById('region').value;
+
+            if (password !== confirmPassword) {
+                alert('Şifreler eşleşmiyor.');
+                return;
+            }
+
+            const application = {
+                panel: 'yoresel-lezzetler',
+                name: name,
+                email: email,
+                phone: phone,
+                password: password,
+                company: company,
+                taxNumber: taxNumber,
+                address: address,
+                country: country,
+                region: region,
+                idCopy: '',
+                taxCertificate: '',
+                signatureCircular: '',
+                status: 'pending',
+                submittedAt: new Date().toISOString()
+            };
+
+            const applications = JSON.parse(localStorage.getItem('pending-applications')) || [];
+            applications.push(application);
+            localStorage.setItem('pending-applications', JSON.stringify(applications));
+
+            alert('Başvurunuz alındı. Onaylandıktan sonra giriş yapabilirsiniz.');
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canlı Yayın Sunucusu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            text-align: center;
+            padding: 50px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        .video-container {
+            margin: 20px 0;
+        }
+        video {
+            width: 100%;
+            max-width: 640px;
+            border: 2px solid #ff0000;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Canlı Yayın Sunucusu</h1>
+        <p>Kendi canlı yayın sunucunuz hazır!</p>
+
+        <div class="status" id="status">Bağlantı bekleniyor...</div>
+
+        <div class="controls">
+            <button class="button" id="startBroadcast">Yayın Başlat</button>
+            <button class="button" id="stopBroadcast" disabled>Yayın Durdur</button>
+            <button class="button" id="startWatching">İzlemeye Başla</button>
+        </div>
+
+        <div class="video-container">
+            <video id="localVideo" autoplay muted></video>
+            <video id="remoteVideo" autoplay></video>
+        </div>
+
+        <div>
+            <h2>Yayın Bilgileri</h2>
+            <p>Server: localhost:3001</p>
+            <p>WebRTC ile gerçek zamanlı yayın</p>
+            <p>Mediasoup SFU kullanılarak ölçeklenebilir</p>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const statusDiv = document.getElementById('status');
+        const startBroadcastBtn = document.getElementById('startBroadcast');
+        const stopBroadcastBtn = document.getElementById('stopBroadcast');
+        const startWatchingBtn = document.getElementById('startWatching');
+
+        let localStream;
+        let producerTransport;
+        let consumerTransport;
+        let isBroadcasting = false;
+
+        socket.on('connect', () => {
+            statusDiv.textContent = 'Sunucuya bağlandı';
+            statusDiv.style.backgroundColor = '#4CAF50';
+        });
+
+        socket.on('disconnect', () => {
+            statusDiv.textContent = 'Sunucu bağlantısı kesildi';
+            statusDiv.style.backgroundColor = '#f44336';
+        });
+
+        startBroadcastBtn.addEventListener('click', async () => {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
+                });
+
+                localVideo.srcObject = localStream;
+                await startBroadcast();
+                startBroadcastBtn.disabled = true;
+                stopBroadcastBtn.disabled = false;
+                statusDiv.textContent = 'Yayın başlatıldı';
+            } catch (error) {
+                console.error('Yayın başlatma hatası:', error);
+                statusDiv.textContent = 'Yayın başlatılamadı: ' + error.message;
+            }
+        });
+
+        stopBroadcastBtn.addEventListener('click', () => {
+            stopBroadcast();
+            startBroadcastBtn.disabled = false;
+            stopBroadcastBtn.disabled = true;
+            statusDiv.textContent = 'Yayın durduruldu';
+        });
+
+        startWatchingBtn.addEventListener('click', () => {
+            startWatching();
+        });
+
+        async function startBroadcast() {
+            // Get router capabilities
+            socket.emit('getRouterRtpCapabilities', async (rtpCapabilities) => {
+                // Create device
+                const device = new MediasoupClient.Device();
+                await device.load({ routerRtpCapabilities: rtpCapabilities });
+
+                // Create producer transport
+                socket.emit('createProducerTransport', async (transportParams) => {
+                    producerTransport = device.createSendTransport(transportParams);
+
+                    producerTransport.on('connect', async ({ dtlsParameters }, callback) => {
+                        socket.emit('connectProducerTransport', { dtlsParameters }, callback);
+                    });
+
+                    producerTransport.on('produce', async ({ kind, rtpParameters }, callback) => {
+                        socket.emit('produce', { kind, rtpParameters }, callback);
+                    });
+
+                    // Produce video
+                    const videoTrack = localStream.getVideoTracks()[0];
+                    const videoProducer = await producerTransport.produce({ track: videoTrack });
+
+                    // Produce audio
+                    const audioTrack = localStream.getAudioTracks()[0];
+                    const audioProducer = await producerTransport.produce({ track: audioTrack });
+
+                    isBroadcasting = true;
+                });
+            });
+        }
+
+        function stopBroadcast() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localVideo.srcObject = null;
+            }
+            if (producerTransport) {
+                producerTransport.close();
+            }
+            isBroadcasting = false;
+        }
+
+        async function startWatching() {
+            // Get router capabilities
+            socket.emit('getRouterRtpCapabilities', async (rtpCapabilities) => {
+                const device = new MediasoupClient.Device();
+                await device.load({ routerRtpCapabilities: rtpCapabilities });
+
+                // Create consumer transport
+                socket.emit('createConsumerTransport', async (transportParams) => {
+                    consumerTransport = device.createRecvTransport(transportParams);
+
+                    consumerTransport.on('connect', async ({ dtlsParameters }, callback) => {
+                        socket.emit('connectConsumerTransport', { dtlsParameters }, callback);
+                    });
+
+                    // Assume we know the producer ID (in real app, get from server)
+                    const producers = await getProducers();
+                    if (producers.length > 0) {
+                        const producerId = producers[0].id;
+
+                        socket.emit('consume', { producerId }, async (consumerParams) => {
+                            const consumer = await consumerTransport.consume(consumerParams);
+
+                            socket.emit('resumeConsumer', { consumerId: consumer.id });
+
+                            const stream = new MediaStream([consumer.track]);
+                            remoteVideo.srcObject = stream;
+                        });
+                    }
+                });
+            });
+        }
+
+        function getProducers() {
+            return new Promise((resolve) => {
+                socket.emit('getProducers', (producers) => {
+                    resolve(producers);
+                });
+            });
+        }
+    </script>
+    <script src="/node_modules/mediasoup-client/lib/index.min.js"></script>
+</body>
+</html>

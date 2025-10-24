@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ürün Yönetimi - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #333333;
+            padding: 20px;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        .sidebar h3 {
+            color: #ff0000;
+        }
+        .sidebar .button {
+            display: block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px;
+            margin: 10px 0;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+        }
+        .sidebar .button:hover {
+            background-color: #cc0000;
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>Ürün Yönetimi</h3>
+        <button class="button" onclick="listProducts()">Ürünleri Listele</button>
+        <button class="button" onclick="addProduct()">Ürün Ekle</button>
+        <button class="button" onclick="buyFromSupplier()">Tedarikçiden Al</button>
+        <button class="button" onclick="sellToCustomer()">Müşteriye Sat</button>
+        <button class="button" onclick="removeProduct()">Ürün Çıkart</button>
+        <button class="button" onclick="makeCampaign()">Kampanya Yap</button>
+        <button class="button" onclick="myStocks()">Stoklarım</button>
+    </div>
+    <div class="main-content">
+        <h1><i>Ürün Yönetimi</i></h1>
+        <p>Ürünlerinizi buradan yönetin.</p>
+        <table id="productsTable" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+            <thead>
+                <tr style="background-color: #ff0000; color: #ffffff;">
+                    <th style="padding: 10px; border: 1px solid #ffffff;">Ürün Adı</th>
+                    <th style="padding: 10px; border: 1px solid #ffffff;">Barkod</th>
+                    <th style="padding: 10px; border: 1px solid #ffffff;">Stok</th>
+                    <th style="padding: 10px; border: 1px solid #ffffff;">Fiyat</th>
+                    <th style="padding: 10px; border: 1px solid #ffffff;">Kategori</th>
+                    <th style="padding: 10px; border: 1px solid #ffffff;">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody id="productsBody">
+                <!-- Products will be loaded here -->
+            </tbody>
+        </table>
+        <a href="index.html" class="button">Ana Sayfa</a>
+    </div>
+
+    <script>
+        function getPanel() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('panel') || 'general';
+        }
+
+        function loadProducts() {
+            const panel = getPanel();
+            const key = 'products-' + panel;
+            const products = JSON.parse(localStorage.getItem(key)) || [];
+            const tbody = document.getElementById('productsBody');
+            tbody.innerHTML = '';
+            products.forEach((product, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="padding: 10px; border: 1px solid #ffffff;">${product.name}</td>
+                    <td style="padding: 10px; border: 1px solid #ffffff;">${product.barcode}</td>
+                    <td style="padding: 10px; border: 1px solid #ffffff;">${product.stock}</td>
+                    <td style="padding: 10px; border: 1px solid #ffffff;">${product.price}</td>
+                    <td style="padding: 10px; border: 1px solid #ffffff;">${product.category}</td>
+                    <td style="padding: 10px; border: 1px solid #ffffff;">
+                        <button onclick="viewProduct(${index})" style="background-color: #00ff00; color: #000000; border: none; padding: 5px 10px; cursor: pointer;">Görüntüle</button>
+                        <button onclick="editProduct(${index})" style="background-color: #ffff00; color: #000000; border: none; padding: 5px 10px; cursor: pointer;">Düzenle</button>
+                        <button onclick="deleteProduct(${index})" style="background-color: #ff0000; color: #ffffff; border: none; padding: 5px 10px; cursor: pointer;">Sil</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function listProducts() {
+            loadProducts();
+        }
+
+        function addProduct() {
+            const panel = getPanel();
+            window.location.href = 'urun-ekle.html?panel=' + panel;
+        }
+
+        function deleteProduct(index) {
+            const panel = getPanel();
+            const key = 'products-' + panel;
+            let products = JSON.parse(localStorage.getItem(key)) || [];
+            products.splice(index, 1);
+            localStorage.setItem(key, JSON.stringify(products));
+            loadProducts();
+        }
+
+        function removeProduct() {
+            alert('Ürün çıkarma için sil butonunu kullanın.');
+        }
+
+        function makeCampaign() {
+            const panel = getPanel();
+            window.location.href = 'kampanya-yap.html?panel=' + panel;
+        }
+
+        function viewProduct(index) {
+            const panel = getPanel();
+            window.location.href = 'urun-goruntule.html?panel=' + panel + '&index=' + index;
+        }
+
+        function editProduct(index) {
+            const panel = getPanel();
+            window.location.href = 'urun-duzenle.html?panel=' + panel + '&index=' + index;
+        }
+
+        function buyFromSupplier() {
+            const panel = getPanel();
+            const suppliers = {
+                'ureticiler': 'hammadeciler',
+                'toptancilar': 'ureticiler',
+                'saticilar': 'toptancilar',
+                'musteriler': 'saticilar'
+            };
+            const supplier = suppliers[panel];
+            if (supplier) {
+                window.location.href = 'urun-alis.html?panel=' + panel + '&supplier=' + supplier;
+            } else {
+                alert('Bu panel için tedarikçi bulunamadı.');
+            }
+        }
+
+        function sellToCustomer() {
+            const panel = getPanel();
+            const customers = {
+                'hammadeciler': 'ureticiler',
+                'ureticiler': 'toptancilar',
+                'toptancilar': 'saticilar',
+                'saticilar': 'musteriler'
+            };
+            const customer = customers[panel];
+            if (customer) {
+                window.location.href = 'urun-satis.html?panel=' + panel + '&customer=' + customer;
+            } else {
+                alert('Bu panel için müşteri bulunamadı.');
+            }
+        }
+
+        function myStocks() {
+            const panel = getPanel();
+            window.location.href = 'stoklarim.html?panel=' + panel;
+        }
+
+        // Load products on page load
+        window.onload = loadProducts;
+    </script>
+</body>
+</html>

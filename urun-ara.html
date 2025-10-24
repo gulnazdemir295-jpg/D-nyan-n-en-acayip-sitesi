@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ürün Ara - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+        .search-form {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 5px;
+        }
+        .search-form input, .search-form select {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .search-form button {
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .search-form button:hover {
+            background-color: #cc0000;
+        }
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .product-card {
+            background-color: #ffffff;
+            color: #000000;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            padding: 15px;
+            text-align: center;
+        }
+        .product-card img {
+            max-width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .product-card video {
+            max-width: 100%;
+            height: 200px;
+            border-radius: 5px;
+        }
+        .button {
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        .back-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .back-link:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">Ana Sayfa</a>
+
+    <div class="header">
+        <h1>Ürün Ara</h1>
+        <p>Satıcıların ürünlerini arayın ve keşfedin.</p>
+    </div>
+
+    <div class="search-form">
+        <h2>Arama Kriterleri</h2>
+        <input type="text" id="productNameFilter" placeholder="Ürün adı girin"><br>
+        <input type="text" id="companyFilter" placeholder="Şirket adı girin"><br>
+        <input type="text" id="cityFilter" placeholder="Şehir girin"><br>
+        <input type="text" id="districtFilter" placeholder="İlçe girin"><br>
+        <input type="text" id="regionFilter" placeholder="Bölge girin"><br>
+        <select id="categoryFilter">
+            <option value="">Kategori Seçin</option>
+            <option value="yoresel-lezzetler">Yöresel Lezzetler</option>
+            <option value="el-sanatlari">El Sanatları</option>
+            <option value="diger">Diğer</option>
+        </select><br>
+        <button onclick="searchProducts()">Ara</button>
+    </div>
+
+    <div class="products" id="productsList">
+        <!-- Ürünler burada yüklenecek -->
+    </div>
+
+    <script>
+        let allProducts = [];
+        const urlParams = new URLSearchParams(window.location.search);
+        const filter = urlParams.get('filter');
+
+        function loadAllProducts() {
+            const panels = ['saticilar'];
+            allProducts = [];
+            panels.forEach(panel => {
+                const products = JSON.parse(localStorage.getItem('products-' + panel)) || [];
+                allProducts = allProducts.concat(products.map(p => ({ ...p, sellerPanel: panel })));
+            });
+        }
+
+        function searchProducts() {
+            const productName = document.getElementById('productNameFilter').value.toLowerCase();
+            const company = document.getElementById('companyFilter').value.toLowerCase();
+            const city = document.getElementById('cityFilter').value.toLowerCase();
+            const district = document.getElementById('districtFilter').value.toLowerCase();
+            const region = document.getElementById('regionFilter').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value.toLowerCase();
+
+            let filtered = allProducts.filter(p =>
+                (!productName || p.name.toLowerCase().includes(productName)) &&
+                (!company || (p.company && p.company.toLowerCase().includes(company))) &&
+                (!city || (p.city && p.city.toLowerCase().includes(city))) &&
+                (!district || (p.district && p.district.toLowerCase().includes(district))) &&
+                (!region || (p.region && p.region.toLowerCase().includes(region))) &&
+                (!category || (p.category && p.category.toLowerCase().includes(category)))
+            );
+
+            // Apply filter if present
+            if (filter === 'kategori') {
+                // Show all categories, but highlight or group by category
+                // For now, just display all
+            }
+
+            displayProducts(filtered);
+        }
+
+        function displayProducts(products) {
+            const productsList = document.getElementById('productsList');
+            productsList.innerHTML = '';
+            if (products.length === 0) {
+                productsList.innerHTML = '<p>Hiç ürün bulunamadı.</p>';
+                return;
+            }
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    ${product.photo ? `<img src="${product.photo}" alt="${product.name}">` : '<p>Görsel Yok</p>'}
+                    ${product.video ? `<video controls><source src="${product.video}" type="video/mp4"></video>` : ''}
+                    <h3>${product.name}</h3>
+                    <p>Fiyat: ${product.price} TL</p>
+                    <p>Şirket: ${product.company || 'Bilinmiyor'}</p>
+                    <p>Şehir: ${product.city || 'Bilinmiyor'}</p>
+                    <p>İlçe: ${product.district || 'Bilinmiyor'}</p>
+                    <p>Bölge: ${product.region || 'Bilinmiyor'}</p>
+                    <p>Kategori: ${product.category || 'Belirtilmemiş'}</p>
+                    ${product.culturalInfo ? `<p>Kültürel Bilgi: ${product.culturalInfo}</p>` : ''}
+                    <button class="button" onclick="viewSeller('${product.company}')">Satıcıyı Görüntüle</button>
+                `;
+                productsList.appendChild(card);
+            });
+        }
+
+        function viewSeller(companyName) {
+            const approvedUsers = JSON.parse(localStorage.getItem('approved-users')) || [];
+            const seller = approvedUsers.find(u => u.company === companyName && u.panel === 'saticilar');
+            if (seller) {
+                window.location.href = 'satici-sayfasi.html?seller=' + encodeURIComponent(seller.email);
+            } else {
+                alert('Satıcı bulunamadı.');
+            }
+        }
+
+        loadAllProducts();
+        searchProducts(); // Initial display
+    </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ürün Görüntüle - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .product-details {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        img {
+            max-width: 300px;
+            max-height: 300px;
+        }
+        video {
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Ürün Görüntüle</i></h1>
+    <div class="product-details" id="productDetails">
+        <!-- Product details will be loaded here -->
+    </div>
+    <a href="urun-yonetimi.html" class="button">Ürün Yönetimi</a>
+    <a href="index.html" class="button">Ana Sayfa</a>
+
+    <script>
+        function getPanel() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('panel') || 'general';
+        }
+
+        function loadProduct() {
+            const panel = getPanel();
+            const index = new URLSearchParams(window.location.search).get('index');
+            const key = 'products-' + panel;
+            const products = JSON.parse(localStorage.getItem(key)) || [];
+            const product = products[index];
+            if (product) {
+                const details = document.getElementById('productDetails');
+                details.innerHTML = `
+                    ${product.photo ? `<img src="${product.photo}" alt="Ürün Fotoğrafı" style="display: block; margin: 0 auto 20px;"><br>` : ''}
+                    <h2>${product.name}</h2>
+                    <p><strong>Barkod:</strong> ${product.barcode}</p>
+                    <p><strong>Stok:</strong> ${product.stock}</p>
+                    <p><strong>Fiyat:</strong> ${product.price}</p>
+                    <p><strong>Kategori:</strong> ${product.category}</p>
+                    ${product.video ? `<p><strong>Video:</strong></p><video controls style="display: block; margin: 0 auto;"><source src="${product.video}" type="video/mp4"></video>` : ''}
+                    ${product.liveBroadcast ? '<p><strong>Canlı Yayın:</strong> Aktif</p>' : ''}
+                `;
+            } else {
+                document.getElementById('productDetails').innerHTML = '<p>Ürün bulunamadı.</p>';
+            }
+        }
+
+        window.onload = loadProduct;
+    </script>
+</body>
+</html>

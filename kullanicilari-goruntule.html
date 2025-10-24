@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kullanıcıları Görüntüle - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 8px;
+            border: 1px solid #ff0000;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 5px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Kullanıcıları Görüntüle</i></h1>
+    <p>Başvuru yapan ve onaylanmış tüm kişileri buradan görüntüleyin.</p>
+
+    <div class="section">
+        <h2>Tüm Kullanıcılar</h2>
+        <table id="usersTable">
+            <thead>
+                <tr>
+                    <th>Panel</th>
+                    <th>Ad Soyad</th>
+                    <th>E-posta</th>
+                    <th>Şirket</th>
+                    <th>Başvuru Tarihi</th>
+                    <th>Geçici Şifre</th>
+                    <th>Telefon</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <a href="admin-panel.html" class="button">Admin Paneli</a>
+    <a href="index.html" class="button">Ana Sayfa</a>
+
+    <script>
+        function loadUsers() {
+            const approvedUsers = JSON.parse(localStorage.getItem('approved-users')) || [];
+            const pendingApplications = JSON.parse(localStorage.getItem('pending-applications')) || [];
+            const allUsers = [...approvedUsers, ...pendingApplications];
+            const tbody = document.querySelector('#usersTable tbody');
+            tbody.innerHTML = '';
+            allUsers.forEach((user, index) => {
+                const status = approvedUsers.includes(user) ? 'Onaylandı' : 'Bekliyor';
+                const row = document.createElement('tr');
+                const isApproved = status === 'Onaylandı';
+                const isNotCustomer = user.panel !== 'musteriler';
+                const canLogin = isApproved && isNotCustomer;
+                row.innerHTML = `
+                    <td>${user.panel}</td>
+                    <td><a href="#" onclick="loginToPanel(${index}, '${status}')">${user.name}</a></td>
+                    <td>${user.email}</td>
+                    <td><a href="#" onclick="loginToPanel(${index}, '${status}')">${user.company || '-'}</a></td>
+                    <td>${new Date(user.submittedAt).toLocaleString('tr-TR')}</td>
+                    <td>${user.tempPassword || '-'}</td>
+                    <td>${user.phone}</td>
+                    <td>${status}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function loginToPanel(index, status) {
+            const approvedUsers = JSON.parse(localStorage.getItem('approved-users')) || [];
+            const pendingApplications = JSON.parse(localStorage.getItem('pending-applications')) || [];
+            const allUsers = [...approvedUsers, ...pendingApplications];
+            const user = allUsers[index];
+            if (status === 'Onaylandı' && user.panel !== 'musteriler') {
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                window.location.href = `${user.panel}-panel.html`;
+            } else if (status !== 'Onaylandı') {
+                alert('Bu kullanıcı henüz onaylanmamış.');
+            } else {
+                alert('Müşteri paneli için doğrudan giriş yapılamaz.');
+            }
+        }
+
+        // Sample data for testing
+        if (!localStorage.getItem('approved-users')) {
+            const sampleApproved = [
+                {
+                    panel: 'toptancilar',
+                    name: 'Test Toptancı',
+                    email: 'test@toptancilar.com',
+                    company: 'Test Toptan Firma',
+                    phone: '05551111111',
+                    submittedAt: new Date().toISOString(),
+                    status: 'approved',
+                    tempPassword: 'test123'
+                }
+            ];
+            localStorage.setItem('approved-users', JSON.stringify(sampleApproved));
+        }
+
+        window.onload = loadUsers;
+    </script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ürün Alış - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #333333;
+            padding: 20px;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        .sidebar h3 {
+            color: #ff0000;
+        }
+        .sidebar .button {
+            display: block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px;
+            margin: 10px 0;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+        }
+        .sidebar .button:hover {
+            background-color: #cc0000;
+        }
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .product-item {
+            background-color: #333333;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .product-item button {
+            background-color: #00ff00;
+            color: #000000;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>Ürün Alış</h3>
+        <a href="urun-yonetimi.html?panel=" class="button" id="backButton">Geri Dön</a>
+    </div>
+    <div class="main-content">
+        <h1><i>Ürün Alış</i></h1>
+        <p>Tedarikçilerden ürün alın.</p>
+        <div id="supplierProducts">
+            <!-- Supplier products will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        function getPanel() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('panel') || 'general';
+        }
+
+        function getSupplier() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('supplier');
+        }
+
+        function loadSupplierProducts() {
+            const supplier = getSupplier();
+            const panel = getPanel();
+            document.getElementById('backButton').href = 'urun-yonetimi.html?panel=' + panel;
+            const products = JSON.parse(localStorage.getItem('products-' + supplier)) || [];
+            const container = document.getElementById('supplierProducts');
+            container.innerHTML = '';
+            products.forEach((product, index) => {
+                const item = document.createElement('div');
+                item.className = 'product-item';
+                item.innerHTML = `
+                    <h3>${product.name}</h3>
+                    <p>Fiyat: ${product.price} TL</p>
+                    <p>Stok: ${product.stock}</p>
+                    <label>Miktar: <input type="number" min="1" value="1" id="qty-${index}"></label>
+                    <button onclick="buyProduct('${supplier}', '${product.name}', ${index})">Satın Al</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function buyProduct(supplier, productName, index) {
+            const panel = getPanel();
+            const quantity = document.getElementById(`qty-${index}`).value;
+            const products = JSON.parse(localStorage.getItem('products-' + supplier)) || [];
+            const product = products.find(p => p.name === productName);
+            if (!product || product.stock < quantity) {
+                alert('Yetersiz stok.');
+                return;
+            }
+            // Create order
+            const order = {
+                buyer: panel,
+                seller: supplier,
+                product: productName,
+                quantity: parseInt(quantity),
+                totalPrice: product.price * quantity,
+                status: 'pending',
+                date: new Date().toISOString()
+            };
+            const orders = JSON.parse(localStorage.getItem('chain-orders')) || [];
+            orders.push(order);
+            localStorage.setItem('chain-orders', JSON.stringify(orders));
+            // Update stock
+            product.stock -= quantity;
+            localStorage.setItem('products-' + supplier, JSON.stringify(products));
+            alert('Sipariş verildi. Onay bekleniyor.');
+        }
+
+        window.onload = loadSupplierProducts;
+    </script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ürün Düzenle - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        form {
+            display: inline-block;
+            text-align: left;
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Ürün Düzenle</i></h1>
+    <form id="editProductForm">
+        <label>Ürün Adı: <input type="text" id="productName" required></label>
+        <label>Barkod: <input type="text" id="barcode" required></label>
+        <label>Stok: <input type="number" id="stock" required></label>
+        <label>Fiyat: <input type="number" step="0.01" id="price" required></label>
+        <label>Kategori:
+            <select id="category" required>
+                <option value="">Seçin</option>
+                <option value="hammadde">Hammadde</option>
+                <option value="uretim">Üretim</option>
+                <option value="toptan">Toptan</option>
+                <option value="satis">Satış</option>
+            </select>
+        </label>
+        <label>Fotoğraf: <input type="file" id="photo" accept="image/*"></label>
+        <label>Video: <input type="file" id="video" accept="video/*"></label>
+        <label>Ürün Tanıtımı İçin Canlı Yayın: <input type="checkbox" id="liveBroadcast"></label>
+        <button type="submit" class="button">Güncelle</button>
+    </form>
+    <a href="urun-yonetimi.html" class="button">Ürün Yönetimi</a>
+    <a href="index.html" class="button">Ana Sayfa</a>
+
+    <script>
+        function getPanel() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('panel') || 'general';
+        }
+
+        function loadProduct() {
+            const panel = getPanel();
+            const index = new URLSearchParams(window.location.search).get('index');
+            const key = 'products-' + panel;
+            const products = JSON.parse(localStorage.getItem(key)) || [];
+            const product = products[index];
+            if (product) {
+                document.getElementById('productName').value = product.name;
+                document.getElementById('barcode').value = product.barcode;
+                document.getElementById('stock').value = product.stock;
+                document.getElementById('price').value = product.price;
+                document.getElementById('category').value = product.category;
+                document.getElementById('liveBroadcast').checked = product.liveBroadcast || false;
+                // Note: File inputs can't be pre-filled for security reasons
+            }
+        }
+
+        document.getElementById('editProductForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const panel = getPanel();
+            const index = new URLSearchParams(window.location.search).get('index');
+            const key = 'products-' + panel;
+            let products = JSON.parse(localStorage.getItem(key)) || [];
+            const product = products[index];
+            if (product) {
+                product.name = document.getElementById('productName').value;
+                product.barcode = document.getElementById('barcode').value;
+                product.stock = document.getElementById('stock').value;
+                product.price = document.getElementById('price').value;
+                product.category = document.getElementById('category').value;
+                const photo = document.getElementById('photo').files[0];
+                const video = document.getElementById('video').files[0];
+                product.liveBroadcast = document.getElementById('liveBroadcast').checked;
+
+                // Handle new photo
+                if (photo) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        product.photo = e.target.result;
+                        handleVideoUpdate();
+                    };
+                    reader.readAsDataURL(photo);
+                } else {
+                    handleVideoUpdate();
+                }
+
+                function handleVideoUpdate() {
+                    if (video) {
+                        const videoReader = new FileReader();
+                        videoReader.onload = function(ve) {
+                            product.video = ve.target.result;
+                            finalizeUpdate();
+                        };
+                        videoReader.readAsDataURL(video);
+                    } else {
+                        finalizeUpdate();
+                    }
+                }
+
+                function finalizeUpdate() {
+                    localStorage.setItem(key, JSON.stringify(products));
+                    alert('Ürün güncellendi!');
+                    window.location.href = 'urun-yonetimi.html?panel=' + panel;
+                }
+            }
+        });
+
+        window.onload = loadProduct;
+    </script>
+</body>
+</html>
