@@ -73,17 +73,21 @@
 </head>
 <body>
     <h1><i>Canlı Yayın Yap</i></h1>
-    <p>Kategori ve ürünü seçin, sloganınızı yazın.</p>
+    <p>Ürünlerinizi seçin ve sloganınızı yazın.</p>
 
-    <label for="product">Numune Ürün Seçin (İlk 3 harfi yazın):</label><br>
-    <input type="text" id="product" placeholder="Ürün adı yazın..." autocomplete="off"><br>
-    <div id="productList" style="display: none; background-color: #ffffff; color: #000000; max-height: 200px; overflow-y: auto; width: 300px; margin: 0 auto; border: 1px solid #ff0000; border-radius: 5px;"></div><br>
+    <!-- Ürün Seçimi -->
+    <div id="productSelection" style="margin: 20px 0; padding: 20px; border: 1px solid #ff0000; border-radius: 5px; background-color: #ffffff; color: #000000;">
+        <h3>Canlı Yayında Satılacak Ürünler</h3>
+        <p id="noProductsMessage" style="color: #ff0000; display: none;">Hiç ürün yok, ürün ekleyin.</p>
+        <div id="productCheckboxes"></div>
+    </div>
 
     <label for="slogan">Slogan / Cümleler (Yayın altında görünecek):</label><br>
     <textarea id="slogan" rows="4" placeholder="Sloganınızı yazın..."></textarea><br>
 
     <button class="button" onclick="startBroadcast()" id="broadcastBtn">Bas Sat</button>
-    <a href="canli-yayin-odeme.html" class="button">Geri</a>
+    <a href="canli-yayin-satin-al.html" class="button">Süre Ekle</a>
+    <a href="toptancilar-panel.html" class="button">Geri</a>
 
     <div id="subtitles"></div>
 
@@ -93,73 +97,57 @@
             transports: ['polling', 'websocket']
         }); // Connect to live stream server
         const currentUser = JSON.parse(localStorage.getItem('currentUser')) || { email: 'test@toptancilar.com', panel: 'toptancilar' };
-        const agreements = JSON.parse(localStorage.getItem('sampleAgreements')) || [];
-        const acceptedAgreements = agreements.filter(a => a.seller === currentUser.email && a.status === 'accepted');
-        const productInput = document.getElementById('product');
-        const productList = document.getElementById('productList');
 
-        // Sample products for testing
-        const sampleProducts = [
-            { name: 'Demo Ürün', category: 'Elektronik' },
-            { name: 'Test Telefon', category: 'Elektronik' },
-            { name: 'Deneme Bilgisayar', category: 'Elektronik' },
-            { name: 'Örnek Giyim', category: 'Giyim' },
-            { name: 'Test Ayakkabı', category: 'Giyim' },
-            { name: 'Deneme Çanta', category: 'Giyim' }
-        ];
+        // Panel sahibinin ürünlerini yükle
+        let userProducts = [];
+        let selectedProducts = [];
 
-        // Add sample products if no agreements exist
-        if (acceptedAgreements.length === 0) {
-            sampleProducts.forEach(prod => {
-                const sampleAgreement = {
-                    product: prod.name,
-                    supplier: 'Test Tedarikçi',
-                    seller: currentUser ? currentUser.email : 'test@toptancilar.com',
-                    commissionRate: 10,
-                    status: 'accepted',
-                    category: prod.category
-                };
-                agreements.push(sampleAgreement);
-            });
-            localStorage.setItem('sampleAgreements', JSON.stringify(agreements));
-            acceptedAgreements.push(...agreements);
-        }
+        function loadUserProducts() {
+            // localStorage'dan toptancının ürünlerini al
+            const products = JSON.parse(localStorage.getItem('products-toptancilar')) || [];
+            userProducts = products.filter(p => p.owner === currentUser.email);
 
-        // Function to show filtered products
-        function showProductList(filter = '') {
-            productList.innerHTML = '';
-            const filteredProducts = acceptedAgreements.filter(agreement =>
-                agreement.product.toLowerCase().includes(filter.toLowerCase())
-            );
+            const productCheckboxes = document.getElementById('productCheckboxes');
+            const noProductsMessage = document.getElementById('noProductsMessage');
 
-            if (filteredProducts.length > 0 && filter.length >= 1) {
-                productList.style.display = 'block';
-                filteredProducts.forEach(agreement => {
-                    const item = document.createElement('div');
-                    item.className = 'productItem';
-                    item.textContent = agreement.product + ' (' + agreement.category + ')';
-                    item.onclick = () => {
-                        productInput.value = agreement.product;
-                        productList.style.display = 'none';
-                    };
-                    productList.appendChild(item);
+            if (userProducts.length === 0) {
+                noProductsMessage.style.display = 'block';
+                productCheckboxes.innerHTML = '';
+                return;
+            }
+
+            noProductsMessage.style.display = 'none';
+            productCheckboxes.innerHTML = '';
+
+            userProducts.forEach(product => {
+                const checkboxDiv = document.createElement('div');
+                checkboxDiv.style.margin = '5px 0';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = 'product-' + product.name;
+                checkbox.value = product.name;
+                checkbox.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        selectedProducts.push(product);
+                    } else {
+                        selectedProducts = selectedProducts.filter(p => p.name !== product.name);
+                    }
                 });
-            } else {
-                productList.style.display = 'none';
-            }
+
+                const label = document.createElement('label');
+                label.htmlFor = 'product-' + product.name;
+                label.textContent = `${product.name} - ${product.price} TL (Stok: ${product.stock})`;
+                label.style.marginLeft = '5px';
+
+                checkboxDiv.appendChild(checkbox);
+                checkboxDiv.appendChild(label);
+                productCheckboxes.appendChild(checkboxDiv);
+            });
         }
 
-        // Event listener for product input
-        productInput.addEventListener('input', (e) => {
-            showProductList(e.target.value);
-        });
-
-        // Hide list when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!productInput.contains(e.target) && !productList.contains(e.target)) {
-                productList.style.display = 'none';
-            }
-        });
+        // Sayfa yüklendiğinde ürünleri yükle
+        window.addEventListener('load', loadUserProducts);
 
         let localStream;
         let producerTransport;
@@ -227,12 +215,24 @@
 
         async function startBroadcast() {
             console.log('startBroadcast called');
-            const product = document.getElementById('product').value;
             const slogan = document.getElementById('slogan').value;
-            console.log('Product:', product, 'Slogan:', slogan);
+            console.log('Selected products:', selectedProducts, 'Slogan:', slogan);
 
-            if (!product || !slogan) {
-                alert('Lütfen ürün seçin ve slogan yazın.');
+            if (selectedProducts.length === 0) {
+                alert('Lütfen en az bir ürün seçin.');
+                return;
+            }
+
+            if (!slogan) {
+                alert('Lütfen slogan yazın.');
+                return;
+            }
+
+            // Yayın süresi kontrolü
+            const remainingTime = parseInt(localStorage.getItem('broadcastTimeRemaining') || '0');
+            if (remainingTime <= 0) {
+                alert('Yayın süreniz yok. Lütfen önce süre satın alın.');
+                window.location.href = 'canli-yayin-satin-al.html';
                 return;
             }
 
@@ -287,28 +287,19 @@
                             broadcastBtn.disabled = true;
                             broadcastBtn.textContent = 'Yayın aktif';
 
-                            // Handle commission and agreement logic
-                            const agreement = acceptedAgreements.find(a => a.product === product);
-                            if (agreement) {
-                                // For testing, use a default price if product not found
-                                let prod = null;
-                                const allProducts = [];
-                                ['hammadeciler', 'ureticiler', 'toptancilar', 'saticilar'].forEach(panel => {
-                                    const products = JSON.parse(localStorage.getItem('products-' + panel)) || [];
-                                    allProducts.push(...products);
-                                });
-                                prod = allProducts.find(p => p.name === product);
+                            // Seçilen ürünler için komisyon hesapla ve logla
+                            let totalCommission = 0;
+                            const productNames = selectedProducts.map(p => p.name).join(', ');
 
-                                // If no real product found, create a test product
-                                if (!prod) {
-                                    prod = { name: product, price: 100 };
-                                }
+                            selectedProducts.forEach(product => {
+                                // Komisyon hesapla (varsayılan %10)
+                                const commissionRate = 10; // Gerçek uygulamada ürün bazlı olabilir
+                                const commissionAmount = product.price * (commissionRate / 100);
+                                totalCommission += commissionAmount;
 
-                                const commissionAmount = prod.price * (agreement.commissionRate / 100);
                                 const commissionSale = {
-                                    product: product,
+                                    product: product.name,
                                     seller: currentUser.email,
-                                    supplier: agreement.supplier,
                                     commissionAmount: commissionAmount,
                                     date: new Date().toISOString(),
                                     status: 'unpaid'
@@ -316,37 +307,25 @@
                                 const commissionSales = JSON.parse(localStorage.getItem('commissionSales')) || [];
                                 commissionSales.push(commissionSale);
                                 localStorage.setItem('commissionSales', JSON.stringify(commissionSales));
+                            });
+
+                            // Yayın süresini başlat (geriye sayım)
+                            startBroadcastCountdown();
 
                             // Log activity for hareket-takip.html
                             const activity = {
                                 panel: currentUser.panel,
-                                action: 'Canlı Yayın Başlatıldı - Ürün: ' + product,
+                                action: 'Canlı Yayın Başlatıldı - Ürünler: ' + productNames,
                                 time: new Date().toISOString()
                             };
                             const activities = JSON.parse(localStorage.getItem('liveBroadcastActivities')) || [];
                             activities.push(activity);
                             localStorage.setItem('liveBroadcastActivities', JSON.stringify(activities));
 
-                            alert('Canlı yayın başlatıldı! Ürün: ' + product + ', Slogan: ' + slogan + ', Komisyon: ' + commissionAmount + ' TL');
+                            alert('Canlı yayın başlatıldı!\nÜrünler: ' + productNames + '\nSlogan: ' + slogan + '\nToplam Komisyon: ' + totalCommission.toFixed(2) + ' TL');
 
                             // Start subtitles
                             startSubtitles(slogan);
-                            } else {
-                                // Log activity for hareket-takip.html even without agreement
-                                const activity = {
-                                    panel: currentUser.panel,
-                                    action: 'Canlı Yayın Başlatıldı - Ürün: ' + product,
-                                    time: new Date().toISOString()
-                                };
-                                const activities = JSON.parse(localStorage.getItem('liveBroadcastActivities')) || [];
-                                activities.push(activity);
-                                localStorage.setItem('liveBroadcastActivities', JSON.stringify(activities));
-
-                                alert('Test için ürün seçildi. Yayın başlatılıyor...');
-                                // For testing without agreements
-                                alert('Canlı yayın başlatıldı! Ürün: ' + product + ', Slogan: ' + slogan);
-                                startSubtitles(slogan);
-                            }
                         });
                             } catch (error) {
                                 statusDiv.textContent = 'Yayın hatası: ' + (error.message || error);
@@ -361,6 +340,26 @@
                 broadcastBtn.textContent = 'Tekrar Dene';
                 alert('Kamera/mikrofon erişimi reddedildi: ' + (error.message || error));
                 return;
+            }
+        }
+
+        let broadcastCountdownInterval;
+
+        function startBroadcastCountdown() {
+            // Yayın süresi sayacını başlat
+            let remainingTime = parseInt(localStorage.getItem('broadcastTimeRemaining') || '0');
+
+            if (remainingTime > 0) {
+                broadcastCountdownInterval = setInterval(() => {
+                    remainingTime--;
+                    localStorage.setItem('broadcastTimeRemaining', remainingTime.toString());
+
+                    if (remainingTime <= 0) {
+                        clearInterval(broadcastCountdownInterval);
+                        alert('Yayın süreniz doldu! Yayın durduruluyor.');
+                        stopBroadcast();
+                    }
+                }, 1000);
             }
         }
 
@@ -383,11 +382,11 @@
                 index++;
             }, 5000); // Change subtitle every 5 seconds
 
-            // Stop subtitles after 2 minutes for demo
+            // Stop subtitles after 2 minutes for demo (gerçek uygulamada süre bitimine göre)
             setTimeout(() => {
                 clearInterval(subtitleInterval);
                 document.getElementById('subtitles').style.display = 'none';
-                stopBroadcast();
+                // Yayın süresi kontrolü için stopBroadcast() burada çağrılmaz
             }, 120000);
         }
 
@@ -397,6 +396,9 @@
             }
             if (producerTransport) {
                 producerTransport.close();
+            }
+            if (broadcastCountdownInterval) {
+                clearInterval(broadcastCountdownInterval);
             }
             isBroadcasting = false;
             alert('Yayın durduruldu.');

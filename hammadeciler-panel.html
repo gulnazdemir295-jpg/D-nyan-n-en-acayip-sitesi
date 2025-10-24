@@ -70,6 +70,13 @@
         <h3>Hoşgeldiniz</h3>
         <p>Firma Adı: Hammadde Firması</p>
         <img src="logo.png" alt="Logo" style="width: 100px; height: auto;">
+
+        <!-- Yayın Süresi Sayacı -->
+        <div id="broadcastTimer" style="background-color: #ff0000; color: #ffffff; padding: 10px; margin: 10px 0; border-radius: 5px; text-align: center;">
+            <div>Kalan Süre</div>
+            <div id="remainingTime" style="font-size: 24px; font-weight: bold;">00:00:00</div>
+            <a href="canli-yayin-satin-al.html" style="color: #ffffff; text-decoration: underline; font-size: 12px;">Yeni süre ekle</a>
+        </div>
         <a href="urun-yonetimi.html?panel=hammadeciler" class="button">Ürün Yönetimi</a>
         <a href="urun-satis.html?panel=hammadeciler&customer=ureticiler" class="button">Üreticilere Sat</a>
         <a href="kampanya-yap.html?panel=hammadeciler" class="button">Kampanya Yap</a>
@@ -175,6 +182,48 @@
             document.getElementById('status-' + orderId).innerText = newStatus;
             alert('Sipariş ' + orderId + ' durumu güncellendi: ' + newStatus);
         }
+
+        // Yayın süresi sayacı
+        let broadcastTimeRemaining = 0; // saniye cinsinden
+        let timerInterval;
+
+        function startBroadcastTimer() {
+            // localStorage'dan kalan süreyi al (varsayılan 0)
+            broadcastTimeRemaining = parseInt(localStorage.getItem('broadcastTimeRemaining') || '0');
+
+            if (broadcastTimeRemaining > 0) {
+                updateTimerDisplay();
+                timerInterval = setInterval(() => {
+                    broadcastTimeRemaining--;
+                    updateTimerDisplay();
+
+                    if (broadcastTimeRemaining <= 0) {
+                        clearInterval(timerInterval);
+                        alert('Yayın süreniz doldu!');
+                        // Yayın durdurma işlemi burada yapılabilir
+                    }
+
+                    // Her dakika localStorage'a kaydet
+                    if (broadcastTimeRemaining % 60 === 0) {
+                        localStorage.setItem('broadcastTimeRemaining', broadcastTimeRemaining.toString());
+                    }
+                }, 1000);
+            }
+        }
+
+        function updateTimerDisplay() {
+            const hours = Math.floor(broadcastTimeRemaining / 3600);
+            const minutes = Math.floor((broadcastTimeRemaining % 3600) / 60);
+            const seconds = broadcastTimeRemaining % 60;
+
+            document.getElementById('remainingTime').textContent =
+                String(hours).padStart(2, '0') + ':' +
+                String(minutes).padStart(2, '0') + ':' +
+                String(seconds).padStart(2, '0');
+        }
+
+        // Sayfa yüklendiğinde timer'ı başlat
+        window.addEventListener('load', startBroadcastTimer);
     </script>
 </body>
 </html>
