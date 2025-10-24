@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stoklarım - Dünyanın En Acayip Sitesi</title>
+    <link rel="stylesheet" href="css-template.css">
+</head>
+<body>
+    <header>
+        <h1>Dünyanın En Acayip Sitesi</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Ana Sayfa</a></li>
+                <li><a href="urun-yonetimi.html?panel=general">Ürün Yönetimi</a></li>
+                <li><a href="stoklarim.html?panel=general">Stoklarım</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <h1>Stoklarım</h1>
+        <p>Ürünlerinizin stok durumunu takip edin ve yönetin.</p>
+
+        <!-- Filtreler -->
+        <div class="filters" style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h3>Filtreler</h3>
+            <label>Stok Durumu:</label>
+            <select id="stockFilter">
+                <option value="all">Tümü</option>
+                <option value="low">Azalan Stok (10'dan az)</option>
+                <option value="out">Tükenen Stok (0)</option>
+                <option value="available">Stokta Var</option>
+            </select>
+            <label>Kategori:</label>
+            <select id="categoryFilter">
+                <option value="all">Tümü</option>
+            </select>
+            <label id="expiryFilterLabel" style="display: none;">SKT Yaklaşan (gün):</label>
+            <input type="number" id="expiryFilter" placeholder="örn: 30" min="0" style="display: none;">
+            <button class="button" onclick="applyFilters()">Filtrele</button>
+            <button class="button secondary" onclick="clearFilters()">Temizle</button>
+        </div>
+
+        <!-- SKT Uyarı Ayarları (sadece yöresel lezzetler için) -->
+        <div id="expirySettings" class="filters" style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: none;">
+            <h3>SKT Uyarı Ayarları</h3>
+            <label>SKT Uyarı Süresi (gün): <input type="number" id="expiryAlertDays" min="1" max="365" value="30"></label><br>
+            <button onclick="saveExpirySettings()" class="button" style="background-color: #28a745;">Kaydet</button>
+            <p id="currentAlertDays">Mevcut ayar: 30 gün</p>
+        </div>
+
+        <!-- SKT Uyarıları (sadece yöresel lezzetler için) -->
+        <div id="expiryAlerts" style="margin: 20px 0; padding: 20px; border: 1px solid #ffc107; border-radius: 8px; background-color: #fff3cd; display: none;">
+            <h3 style="color: #856404;">SKT Uyarıları</h3>
+            <ul id="alertList" style="color: #856404;"></ul>
+        </div>
+
+        <!-- Stok Tablosu -->
+        <table id="stockTable">
+            <thead>
+                <tr>
+                    <th>Ürün Adı</th>
+                    <th>Barkod</th>
+                    <th>Kategori</th>
+                    <th>Stok Miktarı</th>
+                    <th>Birim Fiyat</th>
+                    <th>Toplam Değer</th>
+                    <th>Sisteme Kayıt Tarihi</th>
+                    <th>SKT</th>
+                    <th>Durum</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody id="stockBody">
+                <!-- Stok verileri burada yüklenecek -->
+            </tbody>
+        </table>
+
+        <!-- Özet Bilgiler -->
+        <div class="summary" style="margin-top: 20px; padding: 20px; background-color: #e9ecef; border-radius: 8px;">
+            <h3>Stok Özeti</h3>
+            <p><strong>Toplam Ürün Çeşidi:</strong> <span id="totalProducts">0</span></p>
+            <p><strong>Toplam Stok Miktarı:</strong> <span id="totalStock">0</span></p>
+            <p><strong>Toplam Stok Değeri:</strong> <span id="totalValue">0 TL</span></p>
+            <p><strong>Azalan Stok (10'dan az):</strong> <span id="lowStockCount">0</span></p>
+            <p><strong>Tükenen Stok:</strong> <span id="outOfStockCount">0</span></p>
+            <p><strong>SKT Yaklaşan (30 gün):</strong> <span id="expiringSoonCount">0</span></p>
+        </div>
+
+        <a href="urun-yonetimi.html?panel=general" class="button secondary">Ürün Yönetimi'ne Dön</a>
+    </main>
+    <footer>
+        <a href="hakkimizda.html">Hakkımızda</a> |
+        <a href="sikca-sorulan-sorular.html">Sıkça Sorulan Sorular</a> |
+        <a href="iletisim.html">İletişim</a>
+    </footer>
+
+    <script>
+        function getPanel() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('panel') || 'general';
+        }
+
+        let allProducts = [];
+
+        function loadProducts() {
+            const panel = getPanel();
+            const key = 'products-' + panel;
+            allProducts = JSON.parse(localStorage.getItem(key)) || [];
+            loadCategories();
+            displayProducts(allProducts);
+            updateSummary();
+            toggleExpiryFeatures();
+        }
+
+        function toggleExpiryFeatures() {
+            const panel = getPanel();
+            const expiryFilterLabel = document.getElementById('expiryFilterLabel');
+            const expiryFilter = document.getElementById('expiryFilter');
+            const expirySettings = document.getElementById('expirySettings');
+            const expiryAlerts = document.getElementById('expiryAlerts');
+
+            if (panel === 'yoresel-lezzetler') {
+                expiryFilterLabel.style.display = 'inline';
+                expiryFilter.style.display = 'inline-block';
+                expirySettings.style.display = 'block';
+                loadExpirySettings();
+                checkExpiryAlerts();
+            } else {
+                expiryFilterLabel.style.display = 'none';
+                expiryFilter.style.display = 'none';
+                expirySettings.style.display = 'none';
+                expiryAlerts.style.display = 'none';
+            }
+        }
+
+        function loadCategories() {
+            const categories = [...new Set(allProducts.map(p => p.category).filter(c => c))];
+            const select = document.getElementById('categoryFilter');
+            select.innerHTML = '<option value="all">Tümü</option>';
+            categories.forEach(cat => {
+                select.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+        }
+
+        function applyFilters() {
+            const stockFilter = document.getElementById('stockFilter').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const expiryDays = parseInt(document.getElementById('expiryFilter').value) || 0;
+
+            let filtered = allProducts;
+
+            if (stockFilter !== 'all') {
+                if (stockFilter === 'low') {
+                    filtered = filtered.filter(p => p.stock < 10 && p.stock > 0);
+                } else if (stockFilter === 'out') {
+                    filtered = filtered.filter(p => p.stock === 0);
+                } else if (stockFilter === 'available') {
+                    filtered = filtered.filter(p => p.stock > 0);
+                }
+            }
+
+            if (categoryFilter !== 'all') {
+                filtered = filtered.filter(p => p.category === categoryFilter);
+            }
+
+            if (expiryDays > 0) {
+                const now = new Date();
+                const futureDate = new Date(now.getTime() + expiryDays * 24 * 60 * 60 * 1000);
+                filtered = filtered.filter(p => {
+                    if (!p.expiryDate) return false;
+                    const expiry = new Date(p.expiryDate);
+                    return expiry <= futureDate;
+                });
+            }
+
+            displayProducts(filtered);
+        }
+
+        function clearFilters() {
+            document.getElementById('stockFilter').value = 'all';
+            document.getElementById('categoryFilter').value = 'all';
+            document.getElementById('expiryFilter').value = '';
+            displayProducts(allProducts);
+        }
+
+        function displayProducts(products) {
+            const tbody = document.getElementById('stockBody');
+            tbody.innerHTML = '';
+
+            if (products.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10">Hiç ürün bulunamadı.</td></tr>';
+                return;
+            }
+
+            products.forEach((product, index) => {
+                const totalValue = (product.stock * product.price).toFixed(2);
+                const addedDate = product.addedDate ? new Date(product.addedDate).toLocaleDateString('tr-TR') : '-';
+                const expiryDate = product.expiryDate ? new Date(product.expiryDate).toLocaleDateString('tr-TR') : '-';
+                const status = getStockStatus(product);
+                const statusClass = getStatusClass(product);
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>${product.barcode || '-'}</td>
+                    <td>${product.category || '-'}</td>
+                    <td>${product.stock}</td>
+                    <td>${product.price} TL</td>
+                    <td>${totalValue} TL</td>
+                    <td>${addedDate}</td>
+                    <td>${expiryDate}</td>
+                    <td><span class="${statusClass}">${status}</span></td>
+                    <td>
+                        <button onclick="updateStock(${index})" class="button">Stok Güncelle</button>
+                        <button onclick="viewProduct(${index})" class="button secondary">Görüntüle</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function getStockStatus(product) {
+            if (product.stock === 0) return 'Tükendi';
+            if (product.stock < 10) return 'Az Stok';
+            if (product.expiryDate) {
+                const now = new Date();
+                const expiry = new Date(product.expiryDate);
+                const daysLeft = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+                if (daysLeft <= 30 && daysLeft > 0) return `SKT: ${daysLeft} gün`;
+                if (daysLeft <= 0) return 'SKT Geçti';
+            }
+            return 'Stokta';
+        }
+
+        function getStatusClass(product) {
+            if (product.stock === 0) return 'status-out';
+            if (product.stock < 10) return 'status-low';
+            if (product.expiryDate) {
+                const now = new Date();
+                const expiry = new Date(product.expiryDate);
+                const daysLeft = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+                if (daysLeft <= 30 && daysLeft > 0) return 'status-warning';
+                if (daysLeft <= 0) return 'status-danger';
+            }
+            return 'status-good';
+        }
+
+        function updateSummary() {
+            const totalProducts = allProducts.length;
+            const totalStock = allProducts.reduce((sum, p) => sum + (p.stock || 0), 0);
+            const totalValue = allProducts.reduce((sum, p) => sum + ((p.stock || 0) * (p.price || 0)), 0).toFixed(2);
+            const lowStockCount = allProducts.filter(p => p.stock < 10 && p.stock > 0).length;
+            const outOfStockCount = allProducts.filter(p => p.stock === 0).length;
+            const expiringSoonCount = allProducts.filter(p => {
+                if (!p.expiryDate) return false;
+                const now = new Date();
+                const expiry = new Date(p.expiryDate);
+                const daysLeft = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+                return daysLeft <= 30 && daysLeft > 0;
+            }).length;
+
+            document.getElementById('totalProducts').textContent = totalProducts;
+            document.getElementById('totalStock').textContent = totalStock;
+            document.getElementById('totalValue').textContent = totalValue + ' TL';
+            document.getElementById('lowStockCount').textContent = lowStockCount;
+            document.getElementById('outOfStockCount').textContent = outOfStockCount;
+            document.getElementById('expiringSoonCount').textContent = expiringSoonCount;
+        }
+
+        function updateStock(index) {
+            const newStock = prompt('Yeni stok miktarı:', allProducts[index].stock);
+            if (newStock !== null && !isNaN(newStock)) {
+                allProducts[index].stock = parseInt(newStock);
+                saveProducts();
+                displayProducts(allProducts);
+                updateSummary();
+                alert('Stok güncellendi.');
+            }
+        }
+
+        function viewProduct(index) {
+            const panel = getPanel();
+            window.location.href = 'urun-goruntule.html?panel=' + panel + '&index=' + index;
+        }
+
+        function saveProducts() {
+            const panel = getPanel();
+            const key = 'products-' + panel;
+            localStorage.setItem(key, JSON.stringify(allProducts));
+        }
+
+        function loadExpirySettings() {
+            const settings = JSON.parse(localStorage.getItem('expirySettings-yoresel-lezzetler')) || { alertDays: 30 };
+            document.getElementById('expiryAlertDays').value = settings.alertDays;
+            document.getElementById('currentAlertDays').textContent = 'Mevcut ayar: ' + settings.alertDays + ' gün';
+            return settings.alertDays;
+        }
+
+        function saveExpirySettings() {
+            const alertDays = parseInt(document.getElementById('expiryAlertDays').value);
+            if (alertDays < 1 || alertDays > 365) {
+                alert('Uyarı süresi 1-365 gün arasında olmalıdır.');
+                return;
+            }
+            const settings = { alertDays: alertDays };
+            localStorage.setItem('expirySettings-yoresel-lezzetler', JSON.stringify(settings));
+            document.getElementById('currentAlertDays').textContent = 'Mevcut ayar: ' + alertDays + ' gün';
+            alert('SKT uyarı ayarları kaydedildi.');
+            checkExpiryAlerts();
+        }
+
+        function checkExpiryAlerts() {
+            const panel = getPanel();
+            if (panel !== 'yoresel-lezzetler') return;
+
+            const alertDays = loadExpirySettings();
+            const products = JSON.parse(localStorage.getItem('products-yoresel-lezzetler')) || [];
+            const now = new Date();
+            const alerts = [];
+
+            products.forEach(product => {
+                if (product.expiryDate) {
+                    const expiry = new Date(product.expiryDate);
+                    const daysLeft = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+                    if (daysLeft <= alertDays && daysLeft > 0) {
+                        alerts.push(`${product.name}: ${daysLeft} gün kaldı (SKT: ${expiry.toLocaleDateString('tr-TR')})`);
+                    } else if (daysLeft <= 0) {
+                        alerts.push(`${product.name}: SKT geçmiş! (${expiry.toLocaleDateString('tr-TR')})`);
+                    }
+                }
+            });
+
+            const alertDiv = document.getElementById('expiryAlerts');
+            const alertList = document.getElementById('alertList');
+
+            if (alerts.length > 0) {
+                alertList.innerHTML = '';
+                alerts.forEach(alert => {
+                    const li = document.createElement('li');
+                    li.textContent = alert;
+                    alertList.appendChild(li);
+                });
+                alertDiv.style.display = 'block';
+            } else {
+                alertDiv.style.display = 'none';
+            }
+        }
+
+        // CSS for status classes
+        const style = document.createElement('style');
+        style.textContent = `
+            .status-out { color: red; font-weight: bold; }
+            .status-low { color: orange; font-weight: bold; }
+            .status-warning { color: #ff6600; font-weight: bold; }
+            .status-danger { color: red; font-weight: bold; }
+            .status-good { color: green; }
+        `;
+        document.head.appendChild(style);
+
+        window.onload = loadProducts;
+    </script>
+</body>
+</html>

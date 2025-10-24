@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gümrük Danışmanı Sepeti - Panel Sahibi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            color: #000000;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #ff0000;
+            text-align: center;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+        }
+        .button {
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        .cart-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .consultant-info {
+            background-color: #ffe6e6;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+            color: white;
+        }
+        .status-pending { color: orange; }
+        .status-approved { color: green; }
+        .status-rejected { color: red; }
+        .status-scheduled { color: blue; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gümrük Danışmanı Sepeti</h1>
+        <p>Uluslararası ticaret siparişlerinizi danışmanlara gönderin ve canlı toplantılar planlayın.</p>
+
+        <div class="section">
+            <h2>Sepetinizdeki Uluslararası Siparişler</h2>
+            <div id="cartItems">
+                <!-- Cart items will be loaded here -->
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Gümrük Danışmanı Seçin</h2>
+            <select id="consultantSelect" onchange="showConsultantInfo()">
+                <option value="">Danışman Seçin</option>
+                <!-- Consultants will be loaded here -->
+            </select>
+            <div id="consultantInfo" class="consultant-info" style="display: none;">
+                <!-- Consultant info will be shown here -->
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Danışmana Gönderilecek Siparişler</h2>
+            <form id="consultationRequestForm">
+                <label><input type="checkbox" id="selectAll"> Tümünü Seç</label><br>
+                <div id="orderCheckboxes">
+                    <!-- Order checkboxes will be loaded here -->
+                </div>
+                <label>Ek Notlar:</label><br>
+                <textarea id="consultationNotes" rows="4" placeholder="Danışmana iletmek istediğiniz notlar..."></textarea><br>
+                <button type="submit" class="button">Danışmana Gönder ve Randevu Talep Et</button>
+            </form>
+        </div>
+
+        <div class="section">
+            <h2>Danışman Taleplerim</h2>
+            <table id="consultationRequestsTable">
+                <thead>
+                    <tr>
+                        <th>Danışman</th>
+                        <th>Siparişler</th>
+                        <th>Tarih</th>
+                        <th>Durum</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Requests will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>Planlanan Toplantılar</h2>
+            <table id="meetingsTable">
+                <thead>
+                    <tr>
+                        <th>Danışman</th>
+                        <th>Tarih/Saat</th>
+                        <th>Konu</th>
+                        <th>Durum</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Meetings will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="javascript:history.back()" class="button">Geri Dön</a>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const panel = urlParams.get('panel');
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+        // Load cart items (international orders)
+        function loadCartItems() {
+            const cart = JSON.parse(localStorage.getItem(`cart-${panel}`)) || [];
+            const internationalOrders = cart.filter(item => item.isInternational);
+            const cartDiv = document.getElementById('cartItems');
+
+            if (internationalOrders.length === 0) {
+                cartDiv.innerHTML = '<p>Sepetinizde uluslararası sipariş bulunmuyor.</p>';
+                return;
+            }
+
+            cartDiv.innerHTML = '';
+            internationalOrders.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'cart-item';
+                itemDiv.innerHTML = `
+                    <h3>${item.productName}</h3>
+                    <p>Miktar: ${item.quantity}</p>
+                    <p>Fiyat: ${item.price} ${item.currency}</p>
+                    <p>Hedef Ülke: ${item.targetCountry}</p>
+                    <p>Tarih: ${new Date(item.date).toLocaleDateString('tr-TR')}</p>
+                `;
+                cartDiv.appendChild(itemDiv);
+            });
+        }
+
+        // Load consultants
+        function loadConsultants() {
+            const consultants = JSON.parse(localStorage.getItem('customsConsultants')) || [];
+            const activeConsultants = consultants.filter(c => c.status === 'active');
+            const select = document.getElementById('consultantSelect');
+
+            activeConsultants.forEach(consultant => {
+                const option = document.createElement('option');
+                option.value = consultant.email;
+                option.textContent = `${consultant.name} - ${getSpecialtyName(consultant.specialty)} (${consultant.rate} TL/saat)`;
+                select.appendChild(option);
+            });
+        }
+
+        function getSpecialtyName(specialty) {
+            const specialties = {
+                'genel': 'Genel Ticaret',
+                'avrupa': 'Avrupa Birliği',
+                'asya': 'Asya',
+                'amerika': 'Amerika',
+                'ortadogu': 'Orta Doğu'
+            };
+            return specialties[specialty] || specialty;
+        }
+
+        function showConsultantInfo() {
+            const consultantEmail = document.getElementById('consultantSelect').value;
+            const consultants = JSON.parse(localStorage.getItem('customsConsultants')) || [];
+            const consultant = consultants.find(c => c.email === consultantEmail);
+
+            const infoDiv = document.getElementById('consultantInfo');
+            if (consultant) {
+                infoDiv.style.display = 'block';
+                infoDiv.innerHTML = `
+                    <h3>${consultant.name}</h3>
+                    <p><strong>Uzmanlık:</strong> ${getSpecialtyName(consultant.specialty)}</p>
+                    <p><strong>Deneyim:</strong> ${consultant.experience} yıl</p>
+                    <p><strong>Saatlik Ücret:</strong> ${consultant.rate} TL</p>
+                    <p><strong>Biyografi:</strong> ${consultant.bio || 'Bilgi verilmedi'}</p>
+                `;
+            } else {
+                infoDiv.style.display = 'none';
+            }
+        }
+
+        // Load order checkboxes
+        function loadOrderCheckboxes() {
+            const cart = JSON.parse(localStorage.getItem(`cart-${panel}`)) || [];
+            const internationalOrders = cart.filter(item => item.isInternational);
+            const checkboxesDiv = document.getElementById('orderCheckboxes');
+
+            checkboxesDiv.innerHTML = '';
+            internationalOrders.forEach((item, index) => {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `order-${index}`;
+                checkbox.value = index;
+
+                const label = document.createElement('label');
+                label.htmlFor = `order-${index}`;
+                label.textContent = `${item.productName} - ${item.targetCountry} (${item.quantity} adet)`;
+
+                checkboxesDiv.appendChild(checkbox);
+                checkboxesDiv.appendChild(label);
+                checkboxesDiv.appendChild(document.createElement('br'));
+            });
+
+            // Select all functionality
+            document.getElementById('selectAll').addEventListener('change', function() {
+                const checkboxes = checkboxesDiv.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => cb.checked = this.checked);
+            });
+        }
+
+        // Submit consultation request
+        document.getElementById('consultationRequestForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const consultantEmail = document.getElementById('consultantSelect').value;
+            const notes = document.getElementById('consultationNotes').value;
+            const selectedOrders = Array.from(document.querySelectorAll('#orderCheckboxes input:checked')).map(cb => parseInt(cb.value));
+
+            if (!consultantEmail) {
+                alert('Lütfen bir danışman seçin.');
+                return;
+            }
+
+            if (selectedOrders.length === 0) {
+                alert('Lütfen en az bir sipariş seçin.');
+                return;
+            }
+
+            const cart = JSON.parse(localStorage.getItem(`cart-${panel}`)) || [];
+            const internationalOrders = cart.filter(item => item.isInternational);
+            const selectedOrderDetails = selectedOrders.map(index => internationalOrders[index]);
+
+            const request = {
+                panelOwner: currentUser.email,
+                panelOwnerName: currentUser.company || currentUser.name,
+                consultantEmail: consultantEmail,
+                orders: selectedOrderDetails,
+                notes: notes,
+                status: 'pending',
+                date: new Date().toISOString()
+            };
+
+            const requests = JSON.parse(localStorage.getItem('consultationRequests')) || [];
+            requests.push(request);
+            localStorage.setItem('consultationRequests', JSON.stringify(requests));
+
+            alert('Danışman talebiniz gönderildi. Danışman randevu için sizinle iletişime geçecek.');
+            this.reset();
+            loadConsultationRequests();
+        });
+
+        // Load consultation requests
+        function loadConsultationRequests() {
+            const requests = JSON.parse(localStorage.getItem('consultationRequests')) || [];
+            const myRequests = requests.filter(r => r.panelOwner === currentUser.email);
+            const tbody = document.querySelector('#consultationRequestsTable tbody');
+
+            tbody.innerHTML = '';
+            myRequests.forEach((request, index) => {
+                const consultants = JSON.parse(localStorage.getItem('customsConsultants')) || [];
+                const consultant = consultants.find(c => c.email === request.consultantEmail);
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${consultant ? consultant.name : request.consultantEmail}</td>
+                    <td>${request.orders.length} sipariş</td>
+                    <td>${new Date(request.date).toLocaleDateString('tr-TR')}</td>
+                    <td class="status-${request.status}">${getStatusText(request.status)}</td>
+                    <td>
+                        <button class="button" onclick="viewRequestDetails(${index})">Detaylar</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function getStatusText(status) {
+            const statuses = {
+                'pending': 'Bekliyor',
+                'approved': 'Onaylandı',
+                'scheduled': 'Randevu Verildi',
+                'completed': 'Tamamlandı',
+                'rejected': 'Reddedildi'
+            };
+            return statuses[status] || status;
+        }
+
+        function viewRequestDetails(index) {
+            const requests = JSON.parse(localStorage.getItem('consultationRequests')) || [];
+            const myRequests = requests.filter(r => r.panelOwner === currentUser.email);
+            const request = myRequests[index];
+
+            let details = `Danışman: ${request.consultantEmail}\nTarih: ${new Date(request.date).toLocaleDateString('tr-TR')}\nDurum: ${getStatusText(request.status)}\n\nSiparişler:\n`;
+            request.orders.forEach(order => {
+                details += `- ${order.productName} (${order.quantity} adet) - ${order.targetCountry}\n`;
+            });
+            if (request.notes) {
+                details += `\nNotlar: ${request.notes}`;
+            }
+
+            alert(details);
+        }
+
+        // Load meetings
+        function loadMeetings() {
+            const meetings = JSON.parse(localStorage.getItem('consultantMeetings')) || [];
+            const myMeetings = meetings.filter(m => m.panelOwner === currentUser.email);
+            const tbody = document.querySelector('#meetingsTable tbody');
+
+            tbody.innerHTML = '';
+            myMeetings.forEach((meeting, index) => {
+                const consultants = JSON.parse(localStorage.getItem('customsConsultants')) || [];
+                const consultant = consultants.find(c => c.email === meeting.consultantEmail);
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${consultant ? consultant.name : meeting.consultantEmail}</td>
+                    <td>${new Date(meeting.dateTime).toLocaleString('tr-TR')}</td>
+                    <td>${meeting.topic}</td>
+                    <td class="status-${meeting.status}">${getMeetingStatusText(meeting.status)}</td>
+                    <td>
+                        <button class="button" onclick="joinMeeting('${meeting.meetingId}')">Katıl</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function getMeetingStatusText(status) {
+            const statuses = {
+                'scheduled': 'Planlandı',
+                'ongoing': 'Devam Ediyor',
+                'completed': 'Tamamlandı',
+                'cancelled': 'İptal Edildi'
+            };
+            return statuses[status] || status;
+        }
+
+        function joinMeeting(meetingId) {
+            // Redirect to live meeting page
+            window.location.href = `uluslararasi-canli-yayin-yap.html?meetingId=${meetingId}`;
+        }
+
+        // Initial load
+        loadCartItems();
+        loadConsultants();
+        loadOrderCheckboxes();
+        loadConsultationRequests();
+        loadMeetings();
+    </script>
+</body>
+</html>

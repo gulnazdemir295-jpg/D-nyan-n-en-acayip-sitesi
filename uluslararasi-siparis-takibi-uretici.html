@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uluslararası Sipariş Takibi - Üreticiler Paneli</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            float: left;
+            width: 200px;
+            padding: 20px;
+            background-color: #ffffff;
+            color: #000000;
+            border-right: 1px solid #ff0000;
+            height: 100vh;
+        }
+        .sidebar h3 {
+            color: #ff0000;
+        }
+        .sidebar .button {
+            display: block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px;
+            margin: 10px 0;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .sidebar .button:hover {
+            background-color: #cc0000;
+        }
+        .main {
+            margin-left: 240px;
+            padding: 50px;
+            text-align: center;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            background-color: #ffffff;
+            color: #000000;
+            text-align: left;
+        }
+        .order-item {
+            border: 1px solid #ff0000;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #f8f9fa;
+        }
+        .status-pending { color: #ff6600; }
+        .status-processing { color: #0066ff; }
+        .status-shipped { color: #009900; }
+        .status-delivered { color: #009900; }
+        .status-cancelled { color: #ff0000; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>Üretici Paneli</h3>
+        <a href="ureticiler-panel.html" class="button">Geri Dön</a>
+        <a href="#incomingOrders" class="button">Gelen Siparişler</a>
+        <a href="#shippedOrders" class="button">Gönderilen Siparişler</a>
+        <a href="#returns" class="button">İadeler</a>
+    </div>
+    <div class="main">
+        <h1><i>Uluslararası Sipariş Takibi</i></h1>
+        <p>Uluslararası siparişlerinizi buradan yönetin.</p>
+
+        <div id="incomingOrders" class="section">
+            <h2>Gelen Siparişler</h2>
+            <div id="incomingOrdersList">
+                <!-- Incoming orders will be loaded here -->
+            </div>
+        </div>
+
+        <div id="shippedOrders" class="section">
+            <h2>Gönderilen Siparişler</h2>
+            <div id="shippedOrdersList">
+                <!-- Shipped orders will be loaded here -->
+            </div>
+        </div>
+
+        <div id="returns" class="section">
+            <h2>İade Talepleri</h2>
+            <div id="returnsList">
+                <!-- Returns will be loaded here -->
+            </div>
+        </div>
+
+        <a href="ureticiler-panel.html" class="button">Üreticiler Paneli</a>
+        <a href="admin-panel.html" class="button">Admin Paneli</a>
+    </div>
+
+    <script>
+        function loadIncomingOrders() {
+            const orders = JSON.parse(localStorage.getItem('internationalProducerOrders')) || [
+                { id: 1, product: 'Üretim Ürünü 1', customer: 'John Doe', country: 'USA', status: 'pending', date: '2024-01-15', amount: 150 },
+                { id: 2, product: 'Üretim Ürünü 2', customer: 'Maria Garcia', country: 'Spain', status: 'processing', date: '2024-01-10', amount: 200 }
+            ];
+
+            const container = document.getElementById('incomingOrdersList');
+            container.innerHTML = '';
+
+            orders.forEach(order => {
+                if (order.status === 'pending' || order.status === 'processing') {
+                    const item = document.createElement('div');
+                    item.className = 'order-item';
+                    item.innerHTML = `
+                        <h3>Sipariş #${order.id}</h3>
+                        <p>Ürün: ${order.product}</p>
+                        <p>Müşteri: ${order.customer} (${order.country})</p>
+                        <p>Tutar: ${order.amount} USD</p>
+                        <p>Durum: <span class="status-${order.status}">${getStatusText(order.status)}</span></p>
+                        <p>Tarih: ${new Date(order.date).toLocaleDateString('tr-TR')}</p>
+                        <button class="button" onclick="updateOrderStatus(${order.id}, 'processing')">İşlemeye Al</button>
+                        <button class="button" onclick="updateOrderStatus(${order.id}, 'shipped')">Gönder</button>
+                        <button class="button" onclick="cancelOrder(${order.id})">İptal Et</button>
+                    `;
+                    container.appendChild(item);
+                }
+            });
+        }
+
+        function loadShippedOrders() {
+            const orders = JSON.parse(localStorage.getItem('internationalProducerOrders')) || [
+                { id: 3, product: 'Üretim Ürünü 3', customer: 'Hans Müller', country: 'Germany', status: 'shipped', date: '2024-01-05', amount: 300, tracking: 'DE123456789' },
+                { id: 4, product: 'Üretim Ürünü 4', customer: 'Pierre Dubois', country: 'France', status: 'delivered', date: '2023-12-20', amount: 250, tracking: 'FR987654321' }
+            ];
+
+            const container = document.getElementById('shippedOrdersList');
+            container.innerHTML = '';
+
+            orders.forEach(order => {
+                if (order.status === 'shipped' || order.status === 'delivered') {
+                    const item = document.createElement('div');
+                    item.className = 'order-item';
+                    item.innerHTML = `
+                        <h3>Sipariş #${order.id}</h3>
+                        <p>Ürün: ${order.product}</p>
+                        <p>Müşteri: ${order.customer} (${order.country})</p>
+                        <p>Tutar: ${order.amount} USD</p>
+                        <p>Durum: <span class="status-${order.status}">${getStatusText(order.status)}</span></p>
+                        <p>Tarih: ${new Date(order.date).toLocaleDateString('tr-TR')}</p>
+                        <p>Takip No: ${order.tracking || 'Henüz yok'}</p>
+                        <button class="button" onclick="viewOrderDetails(${order.id})">Detaylar</button>
+                    `;
+                    container.appendChild(item);
+                }
+            });
+        }
+
+        function loadReturns() {
+            const returns = JSON.parse(localStorage.getItem('internationalProducerReturns')) || [
+                { id: 1, orderId: 3, product: 'Üretim Ürünü 3', customer: 'Hans Müller', reason: 'Hasarlı ürün', status: 'pending', date: '2024-01-08' }
+            ];
+
+            const container = document.getElementById('returnsList');
+            container.innerHTML = '';
+
+            returns.forEach(ret => {
+                const item = document.createElement('div');
+                item.className = 'order-item';
+                item.innerHTML = `
+                    <h3>İade Talebi #${ret.id}</h3>
+                    <p>Ürün: ${ret.product}</p>
+                    <p>Müşteri: ${ret.customer}</p>
+                    <p>Sebep: ${ret.reason}</p>
+                    <p>Durum: <span class="status-${ret.status}">${getStatusText(ret.status)}</span></p>
+                    <p>Tarih: ${new Date(ret.date).toLocaleDateString('tr-TR')}</p>
+                    <button class="button" onclick="approveReturn(${ret.id})">Onayla</button>
+                    <button class="button" onclick="rejectReturn(${ret.id})">Reddet</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function getStatusText(status) {
+            const statuses = {
+                pending: 'Bekliyor',
+                processing: 'İşleniyor',
+                shipped: 'Gönderildi',
+                delivered: 'Teslim Edildi',
+                cancelled: 'İptal Edildi'
+            };
+            return statuses[status] || status;
+        }
+
+        function updateOrderStatus(orderId, newStatus) {
+            const orders = JSON.parse(localStorage.getItem('internationalProducerOrders')) || [];
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                order.status = newStatus;
+                if (newStatus === 'shipped') {
+                    order.tracking = 'TR' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                }
+                localStorage.setItem('internationalProducerOrders', JSON.stringify(orders));
+                loadIncomingOrders();
+                loadShippedOrders();
+                alert(`Sipariş #${orderId} durumu güncellendi: ${getStatusText(newStatus)}`);
+            }
+        }
+
+        function cancelOrder(orderId) {
+            if (confirm('Bu siparişi iptal etmek istediğinizden emin misiniz?')) {
+                updateOrderStatus(orderId, 'cancelled');
+            }
+        }
+
+        function viewOrderDetails(orderId) {
+            alert(`Sipariş #${orderId} detayları görüntüleniyor.`);
+        }
+
+        function approveReturn(returnId) {
+            const returns = JSON.parse(localStorage.getItem('internationalProducerReturns')) || [];
+            const ret = returns.find(r => r.id === returnId);
+            if (ret) {
+                ret.status = 'approved';
+                localStorage.setItem('internationalProducerReturns', JSON.stringify(returns));
+                loadReturns();
+                alert(`İade talebi #${returnId} onaylandı.`);
+            }
+        }
+
+        function rejectReturn(returnId) {
+            const returns = JSON.parse(localStorage.getItem('internationalProducerReturns')) || [];
+            const ret = returns.find(r => r.id === returnId);
+            if (ret) {
+                ret.status = 'rejected';
+                localStorage.setItem('internationalProducerReturns', JSON.stringify(returns));
+                loadReturns();
+                alert(`İade talebi #${returnId} reddedildi.`);
+            }
+        }
+
+        loadIncomingOrders();
+        loadShippedOrders();
+        loadReturns();
+    </script>
+</body>
+</html>

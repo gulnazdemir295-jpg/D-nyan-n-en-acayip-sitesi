@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gümrük Danışmanları Yönetimi - Admin Paneli</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            color: #000000;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #ff0000;
+            text-align: center;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .button {
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+            color: white;
+        }
+        .status-pending { color: orange; }
+        .status-approved { color: green; }
+        .status-rejected { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gümrük Danışmanları Yönetimi</h1>
+
+        <h2>Yeni Danışman Ekle</h2>
+        <form id="addConsultantForm">
+            <div class="form-group">
+                <label>Ad Soyad:</label>
+                <input type="text" id="consultantName" required>
+            </div>
+            <div class="form-group">
+                <label>E-posta:</label>
+                <input type="email" id="consultantEmail" required>
+            </div>
+            <div class="form-group">
+                <label>Uzmanlık Alanı:</label>
+                <select id="consultantSpecialty" required>
+                    <option value="">Seçin</option>
+                    <option value="genel">Genel Ticaret</option>
+                    <option value="avrupa">Avrupa Birliği</option>
+                    <option value="asya">Asya</option>
+                    <option value="amerika">Amerika</option>
+                    <option value="ortadogu">Orta Doğu</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Saatlik Ücret (TL):</label>
+                <input type="number" id="consultantRate" min="0" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label>Deneyim Yılı:</label>
+                <input type="number" id="consultantExperience" min="0" required>
+            </div>
+            <div class="form-group">
+                <label>Biyografi:</label>
+                <textarea id="consultantBio" rows="4"></textarea>
+            </div>
+            <button type="submit" class="button">Danışman Ekle</button>
+        </form>
+
+        <h2>Mevcut Danışmanlar</h2>
+        <table id="consultantsTable">
+            <thead>
+                <tr>
+                    <th>Ad Soyad</th>
+                    <th>E-posta</th>
+                    <th>Uzmanlık</th>
+                    <th>Ücret (TL/Saat)</th>
+                    <th>Deneyim</th>
+                    <th>Durum</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Consultants will be loaded here -->
+            </tbody>
+        </table>
+
+        <h2>Danışman Atamaları</h2>
+        <table id="assignmentsTable">
+            <thead>
+                <tr>
+                    <th>Danışman</th>
+                    <th>Panel Sahibi</th>
+                    <th>Şirket</th>
+                    <th>Atama Tarihi</th>
+                    <th>Durum</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Assignments will be loaded here -->
+            </tbody>
+        </table>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="admin-panel.html" class="button">Admin Paneline Dön</a>
+        </div>
+    </div>
+
+    <script>
+        // Load consultants
+        function loadConsultants() {
+            const consultants = JSON.parse(localStorage.getItem('customsConsultants')) || [];
+            const tbody = document.querySelector('#consultantsTable tbody');
+            tbody.innerHTML = '';
+
+            consultants.forEach((consultant, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${consultant.name}</td>
+                    <td>${consultant.email}</td>
+                    <td>${getSpecialtyName(consultant.specialty)}</td>
+                    <td>${consultant.rate}</td>
+                    <td>${consultant.experience} yıl</td>
+                    <td class="status-${consultant.status}">${consultant.status === 'active' ? 'Aktif' : 'Pasif'}</td>
+                    <td>
+                        <button class="button" onclick="toggleConsultantStatus(${index})">${consultant.status === 'active' ? 'Pasif Yap' : 'Aktif Yap'}</button>
+                        <button class="button" onclick="deleteConsultant(${index})">Sil</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Load assignments
+        function loadAssignments() {
+            const assignments = JSON.parse(localStorage.getItem('consultantAssignments')) || [];
+            const tbody = document.querySelector('#assignmentsTable tbody');
+            tbody.innerHTML = '';
+
+            assignments.forEach((assignment, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${assignment.consultantName}</td>
+                    <td>${assignment.panelOwnerName}</td>
+                    <td>${assignment.company}</td>
+                    <td>${new Date(assignment.date).toLocaleDateString('tr-TR')}</td>
+                    <td>${assignment.status === 'active' ? 'Aktif' : 'Tamamlandı'}</td>
+                    <td>
+                        <button class="button" onclick="viewAssignmentDetails(${index})">Detaylar</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function getSpecialtyName(specialty) {
+            const specialties = {
+                'genel': 'Genel Ticaret',
+                'avrupa': 'Avrupa Birliği',
+                'asya': 'Asya',
+                'amerika': 'Amerika',
+                'ortadogu': 'Orta Doğu'
+            };
+            return specialties[specialty] || specialty;
+        }
+
+        // Add consultant
+        document.getElementById('addConsultantForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const consultant = {
+                name: document.getElementById('consultantName').value,
+                email: document.getElementById('consultantEmail').value,
+                specialty: document.getElementById('consultantSpecialty').value,
+                rate: parseFloat(document.getElementById('consultantRate').value),
+                experience: parseInt(document.getElementById('consultantExperience').value),
+                bio: document.getElementById('consultantBio').value,
+                status: 'active',
+                createdAt: new Date().toISOString()
+            };
+
+            const consultants = JSON.parse(localStorage.getItem('customsConsultants')) || [];
+            consultants.push(consultant);
+            localStorage.setItem('customsConsultants', JSON.stringify(consultants));
+
+            this.reset();
+            loadConsultants();
+            alert('Danışman başarıyla eklendi.');
+        });
+
+        function toggleConsultantStatus(index) {
+            const consultants = JSON.parse(localStorage.getItem('customsConsultants')) || [];
+            consultants[index].status = consultants[index].status === 'active' ? 'inactive' : 'active';
+            localStorage.setItem('customsConsultants', JSON.stringify(consultants));
+            loadConsultants();
+        }
+
+        function deleteConsultant(index) {
+            if (confirm('Bu danışmanı silmek istediğinizden emin misiniz?')) {
+                const consultants = JSON.parse(localStorage.getItem('customsConsultants')) || [];
+                consultants.splice(index, 1);
+                localStorage.setItem('customsConsultants', JSON.stringify(consultants));
+                loadConsultants();
+            }
+        }
+
+        function viewAssignmentDetails(index) {
+            const assignments = JSON.parse(localStorage.getItem('consultantAssignments')) || [];
+            const assignment = assignments[index];
+            alert(`Danışman: ${assignment.consultantName}\nPanel Sahibi: ${assignment.panelOwnerName}\nŞirket: ${assignment.company}\nTarih: ${new Date(assignment.date).toLocaleDateString('tr-TR')}\nDurum: ${assignment.status}`);
+        }
+
+        // Initial load
+        loadConsultants();
+        loadAssignments();
+    </script>
+</body>
+</html>

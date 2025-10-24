@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İnsan Kaynakları Paneli - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            float: left;
+            width: 200px;
+            padding: 20px;
+            background-color: #ffffff;
+            color: #000000;
+            border-right: 1px solid #ff0000;
+            height: 100vh;
+        }
+        .sidebar h3 {
+            color: #ff0000;
+        }
+        .sidebar .button {
+            display: block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px;
+            margin: 10px 0;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .sidebar .button:hover {
+            background-color: #cc0000;
+        }
+        .main {
+            margin-left: 240px;
+            padding: 50px;
+            text-align: center;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            background-color: #ffffff;
+            color: #000000;
+            text-align: left;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #000000;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+        input, select, textarea {
+            padding: 10px;
+            margin: 10px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>İnsan Kaynakları</h3>
+        <a href="#employees" class="button">Çalışan Yönetimi</a>
+        <a href="#recruitment" class="button">İşe Alım</a>
+        <a href="#payroll" class="button">Maaş Yönetimi</a>
+        <a href="#training" class="button">Eğitim Yönetimi</a>
+    </div>
+    <div class="main">
+        <h1><i>İnsan Kaynakları Paneli</i></h1>
+        <p>Çalışan ve insan kaynakları işlemlerinizi buradan yönetin.</p>
+
+        <div id="employees" class="section">
+            <h2>Çalışan Yönetimi</h2>
+            <button class="button" onclick="showAddEmployeeForm()">Yeni Çalışan Ekle</button>
+            <div id="addEmployeeForm" style="display: none;">
+                <h3>Yeni Çalışan Ekle</h3>
+                <input type="text" id="empName" placeholder="Ad Soyad"><br>
+                <input type="email" id="empEmail" placeholder="E-posta"><br>
+                <input type="text" id="empPosition" placeholder="Pozisyon"><br>
+                <input type="number" id="empSalary" placeholder="Maaş"><br>
+                <button class="button" onclick="addEmployee()">Ekle</button>
+            </div>
+            <table id="employeesTable">
+                <thead>
+                    <tr>
+                        <th>Ad Soyad</th>
+                        <th>E-posta</th>
+                        <th>Pozisyon</th>
+                        <th>Maaş</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Employees will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="recruitment" class="section">
+            <h2>İşe Alım</h2>
+            <button class="button" onclick="showAddJobForm()">Yeni İş İlanı Ekle</button>
+            <div id="addJobForm" style="display: none;">
+                <h3>Yeni İş İlanı Ekle</h3>
+                <input type="text" id="jobTitle" placeholder="İş Başlığı"><br>
+                <textarea id="jobDescription" placeholder="İş Açıklaması"></textarea><br>
+                <button class="button" onclick="addJob()">Ekle</button>
+            </div>
+            <table id="jobsTable">
+                <thead>
+                    <tr>
+                        <th>Başlık</th>
+                        <th>Açıklama</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Jobs will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="payroll" class="section">
+            <h2>Maaş Yönetimi</h2>
+            <table id="payrollTable">
+                <thead>
+                    <tr>
+                        <th>Çalışan</th>
+                        <th>Maaş</th>
+                        <th>Ödeme Tarihi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Payroll will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="training" class="section">
+            <h2>Eğitim Yönetimi</h2>
+            <button class="button" onclick="showAddTrainingForm()">Yeni Eğitim Ekle</button>
+            <div id="addTrainingForm" style="display: none;">
+                <h3>Yeni Eğitim Ekle</h3>
+                <input type="text" id="trainingTitle" placeholder="Eğitim Başlığı"><br>
+                <textarea id="trainingDescription" placeholder="Eğitim Açıklaması"></textarea><br>
+                <button class="button" onclick="addTraining()">Ekle</button>
+            </div>
+            <table id="trainingTable">
+                <thead>
+                    <tr>
+                        <th>Başlık</th>
+                        <th>Açıklama</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Training will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <a href="admin-panel.html" class="button">Admin Paneli</a>
+        <a href="index.html" class="button">Ana Sayfa</a>
+    </div>
+
+    <script>
+        function showAddEmployeeForm() {
+            document.getElementById('addEmployeeForm').style.display = 'block';
+        }
+
+        function addEmployee() {
+            const name = document.getElementById('empName').value;
+            const email = document.getElementById('empEmail').value;
+            const position = document.getElementById('empPosition').value;
+            const salary = document.getElementById('empSalary').value;
+            if (name && email && position && salary) {
+                const employees = JSON.parse(localStorage.getItem('employees')) || [];
+                employees.push({ name, email, position, salary });
+                localStorage.setItem('employees', JSON.stringify(employees));
+                loadEmployees();
+                document.getElementById('addEmployeeForm').style.display = 'none';
+                document.getElementById('empName').value = '';
+                document.getElementById('empEmail').value = '';
+                document.getElementById('empPosition').value = '';
+                document.getElementById('empSalary').value = '';
+            }
+        }
+
+        function loadEmployees() {
+            const employees = JSON.parse(localStorage.getItem('employees')) || [];
+            const tbody = document.querySelector('#employeesTable tbody');
+            tbody.innerHTML = '';
+            employees.forEach((emp, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${emp.name}</td>
+                    <td>${emp.email}</td>
+                    <td>${emp.position}</td>
+                    <td>${emp.salary} TL</td>
+                    <td><button onclick="deleteEmployee(${index})">Sil</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function deleteEmployee(index) {
+            const employees = JSON.parse(localStorage.getItem('employees')) || [];
+            employees.splice(index, 1);
+            localStorage.setItem('employees', JSON.stringify(employees));
+            loadEmployees();
+        }
+
+        function showAddJobForm() {
+            document.getElementById('addJobForm').style.display = 'block';
+        }
+
+        function addJob() {
+            const title = document.getElementById('jobTitle').value;
+            const description = document.getElementById('jobDescription').value;
+            if (title && description) {
+                const jobs = JSON.parse(localStorage.getItem('jobs')) || [];
+                jobs.push({ title, description });
+                localStorage.setItem('jobs', JSON.stringify(jobs));
+                loadJobs();
+                document.getElementById('addJobForm').style.display = 'none';
+                document.getElementById('jobTitle').value = '';
+                document.getElementById('jobDescription').value = '';
+            }
+        }
+
+        function loadJobs() {
+            const jobs = JSON.parse(localStorage.getItem('jobs')) || [];
+            const tbody = document.querySelector('#jobsTable tbody');
+            tbody.innerHTML = '';
+            jobs.forEach((job, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${job.title}</td>
+                    <td>${job.description}</td>
+                    <td><button onclick="deleteJob(${index})">Sil</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function deleteJob(index) {
+            const jobs = JSON.parse(localStorage.getItem('jobs')) || [];
+            jobs.splice(index, 1);
+            localStorage.setItem('jobs', JSON.stringify(jobs));
+            loadJobs();
+        }
+
+        function loadPayroll() {
+            const employees = JSON.parse(localStorage.getItem('employees')) || [];
+            const tbody = document.querySelector('#payrollTable tbody');
+            tbody.innerHTML = '';
+            employees.forEach(emp => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${emp.name}</td>
+                    <td>${emp.salary} TL</td>
+                    <td>${new Date().toLocaleDateString('tr-TR')}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function showAddTrainingForm() {
+            document.getElementById('addTrainingForm').style.display = 'block';
+        }
+
+        function addTraining() {
+            const title = document.getElementById('trainingTitle').value;
+            const description = document.getElementById('trainingDescription').value;
+            if (title && description) {
+                const trainings = JSON.parse(localStorage.getItem('trainings')) || [];
+                trainings.push({ title, description });
+                localStorage.setItem('trainings', JSON.stringify(trainings));
+                loadTrainings();
+                document.getElementById('addTrainingForm').style.display = 'none';
+                document.getElementById('trainingTitle').value = '';
+                document.getElementById('trainingDescription').value = '';
+            }
+        }
+
+        function loadTrainings() {
+            const trainings = JSON.parse(localStorage.getItem('trainings')) || [];
+            const tbody = document.querySelector('#trainingTable tbody');
+            tbody.innerHTML = '';
+            trainings.forEach((training, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${training.title}</td>
+                    <td>${training.description}</td>
+                    <td><button onclick="deleteTraining(${index})">Sil</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function deleteTraining(index) {
+            const trainings = JSON.parse(localStorage.getItem('trainings')) || [];
+            trainings.splice(index, 1);
+            localStorage.setItem('trainings', JSON.stringify(trainings));
+            loadTrainings();
+        }
+
+        loadEmployees();
+        loadJobs();
+        loadPayroll();
+        loadTrainings();
+    </script>
+</body>
+</html>

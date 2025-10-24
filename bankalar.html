@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bankalar - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 5px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ff0000;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Bankalar</i></h1>
+    <p>Banka hesaplarını ve işlemleri yönetin.</p>
+
+    <table id="bankTable">
+        <thead>
+            <tr>
+                <th>Banka Adı</th>
+                <th>Hesap Numarası</th>
+                <th>Bakiye</th>
+                <th>İşlem</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Bank accounts will be populated here -->
+        </tbody>
+    </table>
+
+    <button class="button" onclick="addBankAccount()">Yeni Banka Hesabı Ekle</button>
+    <a href="admin-panel.html" class="button">Admin Paneli</a>
+
+    <script>
+        let bankAccounts = JSON.parse(localStorage.getItem('bankAccounts')) || [
+            { name: 'Bank A', account: '123456789', balance: 50000 },
+            { name: 'Bank B', account: '987654321', balance: 75000 }
+        ];
+
+        function loadBanks() {
+            const tbody = document.querySelector('#bankTable tbody');
+            tbody.innerHTML = '';
+            bankAccounts.forEach((bank, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${bank.name}</td>
+                    <td>${bank.account}</td>
+                    <td>${bank.balance} TL</td>
+                    <td><button onclick="transfer(${index})">Transfer</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+            localStorage.setItem('bankAccounts', JSON.stringify(bankAccounts));
+        }
+
+        function addBankAccount() {
+            const name = prompt('Banka Adı:');
+            const account = prompt('Hesap Numarası:');
+            const balance = prompt('Bakiye:');
+            if (name && account && balance) {
+                bankAccounts.push({ name: name, account: account, balance: parseFloat(balance) });
+                loadBanks();
+            }
+        }
+
+        function transfer(index) {
+            const amount = prompt('Transfer Tutarı:');
+            if (amount) {
+                bankAccounts[index].balance -= parseFloat(amount);
+                loadBanks();
+            }
+        }
+
+        loadBanks();
+    </script>
+</body>
+</html>

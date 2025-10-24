@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kampanya Yap - Dünyanın En Acayip Sitesi</title>
+    <link rel="stylesheet" href="css-template.css">
+</head>
+<body>
+    <header>
+        <h1>Dünyanın En Acayip Sitesi</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Ana Sayfa</a></li>
+                <li><a href="urun-yonetimi.html">Ürün Yönetimi</a></li>
+                <li><a href="kampanya-yap.html">Kampanya Yap</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <h1>Kampanya Oluştur</h1>
+        <p>Ürünleriniz için çeşitli kampanya türleri oluşturun. İndirimler otomatik hesaplanacak ve onayınızla aktifleşecek.</p>
+
+        <form id="campaignForm">
+            <h3>Kampanya Türü Seçin</h3>
+            <select id="campaignType" onchange="showCampaignOptions()">
+                <option value="">Seçin...</option>
+                <option value="buyXGetYFree">X Alana Y Miktar Bedava</option>
+                <option value="bulkDiscount">X Miktar Ürüne %Y İndirim</option>
+                <option value="timeDiscount">Zamanlı İndirim (Günlük/Haftalık/Aylık/Saatlik)</option>
+                <option value="bundleDiscount">X Ürününün Yanında Bunları Al, Sepette %Y İndirim</option>
+                <option value="cartDiscount">Sepette Ekstra %Y İndirim</option>
+                <option value="freeShipping">X Fiyat ve Üzeri Alışverişte Kargo Bedava</option>
+            </select>
+
+            <div id="campaignOptions" style="display: none;">
+                <!-- Dynamic options will be added here -->
+            </div>
+
+            <button type="button" class="button" onclick="createCampaign()">Kampanya Oluştur</button>
+        </form>
+
+        <h2>Oluşturulan Kampanyalar</h2>
+        <div id="campaignsList">
+            <!-- Campaigns will be listed here -->
+        </div>
+
+        <a href="urun-yonetimi.html" class="button secondary">Ürün Yönetimi'ne Dön</a>
+    </main>
+    <footer>
+        <a href="hakkimizda.html">Hakkımızda</a> |
+        <a href="sikca-sorulan-sorular.html">Sıkça Sorulan Sorular</a> |
+        <a href="iletisim.html">İletişim</a>
+    </footer>
+
+    <script>
+        function getPanel() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('panel') || 'general';
+        }
+
+        function showCampaignOptions() {
+            const type = document.getElementById('campaignType').value;
+            const optionsDiv = document.getElementById('campaignOptions');
+            optionsDiv.innerHTML = '';
+
+            if (type === 'buyXGetYFree') {
+                optionsDiv.innerHTML = `
+                    <label>Ürün Seçin:</label>
+                    <select id="productSelect" onchange="loadProductPrice()"></select><br>
+                    <label>X Miktar (kaç adet alınca):</label>
+                    <input type="number" id="xAmount" min="1"><br>
+                    <label>Y Miktar Bedava (kaç adet bedava):</label>
+                    <input type="number" id="yAmount" min="1"><br>
+                    <div id="priceInfo"></div>
+                `;
+                loadProducts();
+            } else if (type === 'bulkDiscount') {
+                optionsDiv.innerHTML = `
+                    <label>Ürün Seçin:</label>
+                    <select id="productSelect" onchange="loadProductPrice()"></select><br>
+                    <label>X Miktar (kaç adet alınca):</label>
+                    <input type="number" id="xAmount" min="1"><br>
+                    <label>%Y İndirim:</label>
+                    <input type="number" id="discountPercent" min="1" max="100"><br>
+                    <div id="priceInfo"></div>
+                `;
+                loadProducts();
+            } else if (type === 'timeDiscount') {
+                optionsDiv.innerHTML = `
+                    <label>Ürün Seçin:</label>
+                    <select id="productSelect" onchange="loadProductPrice()"></select><br>
+                    <label>İndirim Türü:</label>
+                    <select id="timeType">
+                        <option value="hourly">Saatlik</option>
+                        <option value="daily">Günlük</option>
+                        <option value="weekly">Haftalık</option>
+                        <option value="monthly">Aylık</option>
+                    </select><br>
+                    <label>%Y İndirim:</label>
+                    <input type="number" id="discountPercent" min="1" max="100"><br>
+                    <label>Başlangıç Zamanı:</label>
+                    <input type="datetime-local" id="startTime"><br>
+                    <label>Bitiş Zamanı:</label>
+                    <input type="datetime-local" id="endTime"><br>
+                    <div id="priceInfo"></div>
+                `;
+                loadProducts();
+            } else if (type === 'bundleDiscount') {
+                optionsDiv.innerHTML = `
+                    <label>Ana Ürün Seçin:</label>
+                    <select id="mainProductSelect" onchange="loadProductPrice()"></select><br>
+                    <label>Yan Ürünler (virgülle ayırın):</label>
+                    <input type="text" id="bundleProducts" placeholder="Ürün1, Ürün2"><br>
+                    <label>%Y İndirim (sepette):</label>
+                    <input type="number" id="discountPercent" min="1" max="100"><br>
+                    <div id="priceInfo"></div>
+                `;
+                loadProducts();
+            } else if (type === 'cartDiscount') {
+                optionsDiv.innerHTML = `
+                    <label>Sepet Tutarı (minimum):</label>
+                    <input type="number" id="minCartAmount" min="0"><br>
+                    <label>Ekstra %Y İndirim:</label>
+                    <input type="number" id="discountPercent" min="1" max="100"><br>
+                `;
+            } else if (type === 'freeShipping') {
+                optionsDiv.innerHTML = `
+                    <label>Minimum Tutar:</label>
+                    <input type="number" id="minAmount" min="0"><br>
+                    <p>Kargo bedava kampanyası.</p>
+                `;
+            }
+
+            optionsDiv.style.display = 'block';
+        }
+
+        function loadProducts() {
+            const panel = getPanel();
+            const key = 'products-' + panel;
+            const products = JSON.parse(localStorage.getItem(key)) || [];
+            const select = document.getElementById('productSelect') || document.getElementById('mainProductSelect');
+            if (select) {
+                select.innerHTML = '<option value="">Seçin...</option>';
+                products.forEach((product, index) => {
+                    select.innerHTML += `<option value="${index}">${product.name} - ${product.price} TL</option>`;
+                });
+            }
+        }
+
+        function loadProductPrice() {
+            const select = document.getElementById('productSelect') || document.getElementById('mainProductSelect');
+            const index = select.value;
+            if (index !== '') {
+                const panel = getPanel();
+                const key = 'products-' + panel;
+                const products = JSON.parse(localStorage.getItem(key)) || [];
+                const product = products[index];
+                const priceInfo = document.getElementById('priceInfo');
+                priceInfo.innerHTML = `<p>Seçilen Ürün: ${product.name}</p><p>Orijinal Fiyat: ${product.price} TL</p>`;
+            }
+        }
+
+        function createCampaign() {
+            const type = document.getElementById('campaignType').value;
+            if (!type) {
+                alert('Kampanya türü seçin.');
+                return;
+            }
+
+            let campaign = { type: type, panel: getPanel(), status: 'pending' };
+
+            if (type === 'buyXGetYFree') {
+                campaign.productIndex = document.getElementById('productSelect').value;
+                campaign.xAmount = document.getElementById('xAmount').value;
+                campaign.yAmount = document.getElementById('yAmount').value;
+            } else if (type === 'bulkDiscount') {
+                campaign.productIndex = document.getElementById('productSelect').value;
+                campaign.xAmount = document.getElementById('xAmount').value;
+                campaign.discountPercent = document.getElementById('discountPercent').value;
+            } else if (type === 'timeDiscount') {
+                campaign.productIndex = document.getElementById('productSelect').value;
+                campaign.timeType = document.getElementById('timeType').value;
+                campaign.discountPercent = document.getElementById('discountPercent').value;
+                campaign.startTime = document.getElementById('startTime').value;
+                campaign.endTime = document.getElementById('endTime').value;
+            } else if (type === 'bundleDiscount') {
+                campaign.mainProductIndex = document.getElementById('mainProductSelect').value;
+                campaign.bundleProducts = document.getElementById('bundleProducts').value;
+                campaign.discountPercent = document.getElementById('discountPercent').value;
+            } else if (type === 'cartDiscount') {
+                campaign.minCartAmount = document.getElementById('minCartAmount').value;
+                campaign.discountPercent = document.getElementById('discountPercent').value;
+            } else if (type === 'freeShipping') {
+                campaign.minAmount = document.getElementById('minAmount').value;
+            }
+
+            // Calculate discounted price if applicable
+            if (campaign.productIndex !== undefined) {
+                const panel = getPanel();
+                const key = 'products-' + panel;
+                const products = JSON.parse(localStorage.getItem(key)) || [];
+                const product = products[campaign.productIndex];
+                campaign.originalPrice = product.price;
+                if (campaign.discountPercent) {
+                    campaign.discountedPrice = product.price * (1 - campaign.discountPercent / 100);
+                }
+            }
+
+            // Save campaign
+            const campaigns = JSON.parse(localStorage.getItem('campaigns-' + getPanel())) || [];
+            campaigns.push(campaign);
+            localStorage.setItem('campaigns-' + getPanel(), JSON.stringify(campaigns));
+
+            alert('Kampanya oluşturuldu. Onay için bekliyor.');
+            loadCampaigns();
+        }
+
+        function loadCampaigns() {
+            const campaigns = JSON.parse(localStorage.getItem('campaigns-' + getPanel())) || [];
+            const listDiv = document.getElementById('campaignsList');
+            listDiv.innerHTML = '';
+
+            if (campaigns.length === 0) {
+                listDiv.innerHTML = '<p>Henüz kampanya yok.</p>';
+                return;
+            }
+
+            campaigns.forEach((campaign, index) => {
+                const item = document.createElement('div');
+                item.style.border = '1px solid #ddd';
+                item.style.padding = '10px';
+                item.style.margin = '10px 0';
+                item.style.borderRadius = '5px';
+                item.style.backgroundColor = '#f9f9f9';
+
+                let details = `<h4>${campaign.type} Kampanyası</h4>`;
+                if (campaign.productIndex !== undefined) {
+                    const panel = getPanel();
+                    const key = 'products-' + panel;
+                    const products = JSON.parse(localStorage.getItem(key)) || [];
+                    const product = products[campaign.productIndex];
+                    details += `<p>Ürün: ${product.name}</p>`;
+                }
+                if (campaign.discountedPrice) {
+                    details += `<p>İndirimli Fiyat: ${campaign.discountedPrice.toFixed(2)} TL</p>`;
+                }
+                details += `<p>Durum: ${campaign.status}</p>`;
+
+                if (campaign.status === 'pending') {
+                    details += `<button onclick="approveCampaign(${index})" class="button">Onayla</button>
+                                <button onclick="rejectCampaign(${index})" class="button secondary">Reddet</button>`;
+                }
+
+                item.innerHTML = details;
+                listDiv.appendChild(item);
+            });
+        }
+
+        function approveCampaign(index) {
+            const campaigns = JSON.parse(localStorage.getItem('campaigns-' + getPanel())) || [];
+            campaigns[index].status = 'active';
+            localStorage.setItem('campaigns-' + getPanel(), JSON.stringify(campaigns));
+            loadCampaigns();
+            alert('Kampanya onaylandı.');
+        }
+
+        function rejectCampaign(index) {
+            const campaigns = JSON.parse(localStorage.getItem('campaigns-' + getPanel())) || [];
+            campaigns.splice(index, 1);
+            localStorage.setItem('campaigns-' + getPanel(), JSON.stringify(campaigns));
+            loadCampaigns();
+            alert('Kampanya reddedildi.');
+        }
+
+        window.onload = function() {
+            loadCampaigns();
+        };
+    </script>
+</body>
+</html>

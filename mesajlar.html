@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesajlar - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 5px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ff0000;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+        select {
+            padding: 5px;
+        }
+        .send-form {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Mesajlar</i></h1>
+
+    <div id="warnings" style="background-color: #ffffff; color: #000000; padding: 20px; border-radius: 5px; margin: 20px 0; text-align: left;">
+        <h2>Uyarılar</h2>
+        <div id="warningsList"></div>
+    </div>
+
+    <div id="sendForm" class="send-form" style="display: none;">
+        <h2>Yeni Mesaj Gönder</h2>
+        <form id="messageForm">
+            <label>Alıcı Panel: <select id="toPanel" required>
+                <option value="">Seçin</option>
+                <option value="admin">Admin</option>
+                <option value="hammadeciler">Hammadeciler</option>
+                <option value="ureticiler">Üreticiler</option>
+                <option value="toptancilar">Toptancılar</option>
+                <option value="saticilar">Satıcılar</option>
+                <option value="musteri-hizmetleri">Müşteri Hizmetleri</option>
+            </select></label><br>
+            <label>Konu: <input type="text" id="subject" required></label><br>
+            <label>Mesaj: <textarea id="message" rows="4" required></textarea></label><br>
+            <button type="submit" class="button">Gönder</button>
+        </form>
+    </div>
+
+    <table id="messagesTable">
+        <thead>
+            <tr>
+                <th>KİMDEN</th>
+                <th>KONU</th>
+                <th>MESAJ</th>
+                <th>TARİH</th>
+                <th>DURUM</th>
+                <th>İŞLEM</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Messages will be populated here -->
+        </tbody>
+    </table>
+
+    <a href="javascript:history.back()" class="button">Geri</a>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const panel = urlParams.get('panel');
+
+        if (panel !== 'admin') {
+            document.getElementById('sendForm').style.display = 'block';
+        }
+
+        function loadMessages() {
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            const tbody = document.querySelector('#messagesTable tbody');
+            tbody.innerHTML = '';
+            const filtered = panel === 'musteri-hizmetleri' || panel === 'admin' ? messages : messages.filter(m => m.to === panel || m.from === panel);
+            filtered.forEach((msg, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${msg.from}</td>
+                    <td>${msg.subject}</td>
+                    <td>${msg.message}</td>
+                    <td>${new Date(msg.timestamp).toLocaleString()}</td>
+                    <td>
+                        ${panel === 'musteri-hizmetleri' || panel === 'admin' ?
+                            `<select onchange="updateStatus(${index}, this.value)">
+                                <option value="Okundu" ${msg.status === 'Okundu' ? 'selected' : ''}>Okundu</option>
+                                <option value="Süreç Devam Ediyor" ${msg.status === 'Süreç Devam Ediyor' ? 'selected' : ''}>Süreç Devam Ediyor</option>
+                                <option value="Çözüldü" ${msg.status === 'Çözüldü' ? 'selected' : ''}>Çözüldü</option>
+                            </select>` :
+                            msg.status}
+                    </td>
+                    <td><button onclick="reply('${msg.from}', '${msg.subject}')">Cevapla</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateStatus(index, status) {
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            messages[index].status = status;
+            localStorage.setItem('messages', JSON.stringify(messages));
+            loadMessages();
+        }
+
+        function reply(from, subject) {
+            document.getElementById('toPanel').value = from;
+            document.getElementById('subject').value = 'Re: ' + subject;
+            document.getElementById('message').focus();
+        }
+
+        document.getElementById('messageForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const to = document.getElementById('toPanel').value;
+            const subject = document.getElementById('subject').value;
+            const message = document.getElementById('message').value;
+            const newMsg = {
+                from: panel,
+                to: to,
+                subject: subject,
+                message: message,
+                status: 'Gönderildi',
+                timestamp: new Date().toISOString()
+            };
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            messages.push(newMsg);
+            localStorage.setItem('messages', JSON.stringify(messages));
+            alert('Mesaj gönderildi.');
+            this.reset();
+            loadMessages();
+        });
+
+        function loadWarnings() {
+            const warnings = JSON.parse(localStorage.getItem('warnings-' + panel)) || [];
+            const warningsList = document.getElementById('warningsList');
+            if (warnings.length === 0) {
+                warningsList.innerHTML = '<p>Hiç uyarı yok.</p>';
+                return;
+            }
+            warningsList.innerHTML = warnings.map(w => `<p>${w}</p>`).join('');
+        }
+
+        loadMessages();
+        loadWarnings();
+    </script>
+</body>
+</html>

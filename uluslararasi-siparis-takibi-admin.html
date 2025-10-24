@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uluslararası Sipariş Takibi - Admin Paneli</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            float: left;
+            width: 200px;
+            padding: 20px;
+            background-color: #ffffff;
+            color: #000000;
+            border-right: 1px solid #ff0000;
+            height: 100vh;
+        }
+        .sidebar h3 {
+            color: #ff0000;
+        }
+        .sidebar .button {
+            display: block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px;
+            margin: 10px 0;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .sidebar .button:hover {
+            background-color: #cc0000;
+        }
+        .main {
+            margin-left: 240px;
+            padding: 50px;
+            text-align: center;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            background-color: #ffffff;
+            color: #000000;
+            text-align: left;
+        }
+        .order-item {
+            border: 1px solid #ff0000;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #f8f9fa;
+        }
+        .status-pending { color: #ff6600; }
+        .status-processing { color: #0066ff; }
+        .status-shipped { color: #009900; }
+        .status-delivered { color: #009900; }
+        .status-cancelled { color: #ff0000; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #000000;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>Admin Paneli</h3>
+        <a href="admin-panel.html" class="button">Geri Dön</a>
+        <a href="#allOrders" class="button">Tüm Siparişler</a>
+        <a href="#orderStats" class="button">Sipariş İstatistikleri</a>
+        <a href="#returns" class="button">İade Yönetimi</a>
+        <a href="#disputes" class="button">Uyuşmazlıklar</a>
+    </div>
+    <div class="main">
+        <h1><i>Uluslararası Sipariş Takibi</i></h1>
+        <p>Tüm uluslararası siparişleri buradan yönetin ve takip edin.</p>
+
+        <div id="allOrders" class="section">
+            <h2>Tüm Siparişler</h2>
+            <table id="ordersTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Panel</th>
+                        <th>Ürün</th>
+                        <th>Müşteri</th>
+                        <th>Ülke</th>
+                        <th>Durum</th>
+                        <th>Tutar</th>
+                        <th>Tarih</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Orders will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="orderStats" class="section">
+            <h2>Sipariş İstatistikleri</h2>
+            <div id="statsContainer">
+                <!-- Statistics will be loaded here -->
+            </div>
+        </div>
+
+        <div id="returns" class="section">
+            <h2>İade Yönetimi</h2>
+            <div id="returnsList">
+                <!-- Returns will be loaded here -->
+            </div>
+        </div>
+
+        <div id="disputes" class="section">
+            <h2>Uyuşmazlıklar</h2>
+            <div id="disputesList">
+                <!-- Disputes will be loaded here -->
+            </div>
+        </div>
+
+        <a href="admin-panel.html" class="button">Admin Paneli</a>
+    </div>
+
+    <script>
+        function loadAllOrders() {
+            const orderKeys = [
+                'internationalCustomerOrders',
+                'internationalSellerOrders',
+                'internationalProducerOrders',
+                'internationalWholesalerOrders',
+                'internationalRawMaterialOrders'
+            ];
+
+            const allOrders = [];
+            orderKeys.forEach(key => {
+                const orders = JSON.parse(localStorage.getItem(key)) || [];
+                orders.forEach(order => {
+                    order.panel = getPanelName(key);
+                    allOrders.push(order);
+                });
+            });
+
+            const tbody = document.querySelector('#ordersTable tbody');
+            tbody.innerHTML = '';
+
+            allOrders.forEach(order => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${order.id}</td>
+                    <td>${order.panel}</td>
+                    <td>${order.product}</td>
+                    <td>${order.customer || order.seller}</td>
+                    <td>${order.country}</td>
+                    <td><span class="status-${order.status}">${getStatusText(order.status)}</span></td>
+                    <td>${order.amount} USD</td>
+                    <td>${new Date(order.date).toLocaleDateString('tr-TR')}</td>
+                    <td>
+                        <button class="button" onclick="viewOrderDetails(${order.id}, '${order.panel}')">Detaylar</button>
+                        <button class="button" onclick="interveneOrder(${order.id}, '${order.panel}')">Müdahale</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function loadOrderStats() {
+            const orderKeys = [
+                'internationalCustomerOrders',
+                'internationalSellerOrders',
+                'internationalProducerOrders',
+                'internationalWholesalerOrders',
+                'internationalRawMaterialOrders'
+            ];
+
+            let totalOrders = 0;
+            let totalRevenue = 0;
+            let pendingOrders = 0;
+            let shippedOrders = 0;
+            let deliveredOrders = 0;
+
+            orderKeys.forEach(key => {
+                const orders = JSON.parse(localStorage.getItem(key)) || [];
+                orders.forEach(order => {
+                    totalOrders++;
+                    totalRevenue += order.amount || 0;
+                    if (order.status === 'pending') pendingOrders++;
+                    if (order.status === 'shipped') shippedOrders++;
+                    if (order.status === 'delivered') deliveredOrders++;
+                });
+            });
+
+            const container = document.getElementById('statsContainer');
+            container.innerHTML = `
+                <p>Toplam Sipariş: ${totalOrders}</p>
+                <p>Toplam Gelir: ${totalRevenue} USD</p>
+                <p>Bekleyen Siparişler: ${pendingOrders}</p>
+                <p>Gönderilen Siparişler: ${shippedOrders}</p>
+                <p>Teslim Edilen Siparişler: ${deliveredOrders}</p>
+            `;
+        }
+
+        function loadReturns() {
+            const returnKeys = [
+                'internationalReturns',
+                'internationalSellerReturns',
+                'internationalProducerReturns',
+                'internationalWholesalerReturns',
+                'internationalRawMaterialReturns'
+            ];
+
+            const allReturns = [];
+            returnKeys.forEach(key => {
+                const returns = JSON.parse(localStorage.getItem(key)) || [];
+                returns.forEach(ret => {
+                    ret.panel = getPanelName(key.replace('Returns', 'Orders'));
+                    allReturns.push(ret);
+                });
+            });
+
+            const container = document.getElementById('returnsList');
+            container.innerHTML = '';
+
+            allReturns.forEach(ret => {
+                const item = document.createElement('div');
+                item.className = 'order-item';
+                item.innerHTML = `
+                    <h3>İade #${ret.id} (${ret.panel})</h3>
+                    <p>Ürün: ${ret.product}</p>
+                    <p>Müşteri: ${ret.customer}</p>
+                    <p>Sebep: ${ret.reason}</p>
+                    <p>Durum: <span class="status-${ret.status}">${getStatusText(ret.status)}</span></p>
+                    <p>Tarih: ${new Date(ret.date).toLocaleDateString('tr-TR')}</p>
+                    <button class="button" onclick="resolveReturn(${ret.id}, '${ret.panel}')">Çöz</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function loadDisputes() {
+            const disputes = JSON.parse(localStorage.getItem('internationalDisputes')) || [
+                { id: 1, orderId: 1, panel: 'Satıcılar', description: 'Ürün kalitesi sorunu', status: 'open', date: '2024-01-10' }
+            ];
+
+            const container = document.getElementById('disputesList');
+            container.innerHTML = '';
+
+            disputes.forEach(dispute => {
+                const item = document.createElement('div');
+                item.className = 'order-item';
+                item.innerHTML = `
+                    <h3>Uyuşmazlık #${dispute.id} (${dispute.panel})</h3>
+                    <p>Açıklama: ${dispute.description}</p>
+                    <p>Durum: <span class="status-${dispute.status}">${getStatusText(dispute.status)}</span></p>
+                    <p>Tarih: ${new Date(dispute.date).toLocaleDateString('tr-TR')}</p>
+                    <button class="button" onclick="resolveDispute(${dispute.id})">Çöz</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function getPanelName(key) {
+            const panelNames = {
+                'internationalCustomerOrders': 'Müşteriler',
+                'internationalSellerOrders': 'Satıcılar',
+                'internationalProducerOrders': 'Üreticiler',
+                'internationalWholesalerOrders': 'Toptancılar',
+                'internationalRawMaterialOrders': 'Hammadeciler'
+            };
+            return panelNames[key] || key;
+        }
+
+        function getStatusText(status) {
+            const statuses = {
+                pending: 'Bekliyor',
+                processing: 'İşleniyor',
+                shipped: 'Gönderildi',
+                delivered: 'Teslim Edildi',
+                cancelled: 'İptal Edildi',
+                open: 'Açık',
+                approved: 'Onaylandı',
+                rejected: 'Reddedildi'
+            };
+            return statuses[status] || status;
+        }
+
+        function viewOrderDetails(orderId, panel) {
+            alert(`Sipariş #${orderId} (${panel}) detayları görüntüleniyor.`);
+        }
+
+        function interveneOrder(orderId, panel) {
+            const newStatus = prompt('Yeni durum girin (pending/processing/shipped/delivered/cancelled):');
+            if (newStatus) {
+                // Update order status in localStorage
+                const key = getOrderKey(panel);
+                const orders = JSON.parse(localStorage.getItem(key)) || [];
+                const order = orders.find(o => o.id === parseInt(orderId));
+                if (order) {
+                    order.status = newStatus;
+                    localStorage.setItem(key, JSON.stringify(orders));
+                    loadAllOrders();
+                    alert(`Sipariş #${orderId} durumu güncellendi: ${getStatusText(newStatus)}`);
+                }
+            }
+        }
+
+        function getOrderKey(panel) {
+            const keys = {
+                'Müşteriler': 'internationalCustomerOrders',
+                'Satıcılar': 'internationalSellerOrders',
+                'Üreticiler': 'internationalProducerOrders',
+                'Toptancılar': 'internationalWholesalerOrders',
+                'Hammadeciler': 'internationalRawMaterialOrders'
+            };
+            return keys[panel];
+        }
+
+        function resolveReturn(returnId, panel) {
+            const action = confirm('İade talebini çözmek istediğinizden emin misiniz?');
+            if (action) {
+                // Mark return as resolved
+                const key = getReturnKey(panel);
+                const returns = JSON.parse(localStorage.getItem(key)) || [];
+                const ret = returns.find(r => r.id === parseInt(returnId));
+                if (ret) {
+                    ret.status = 'resolved';
+                    localStorage.setItem(key, JSON.stringify(returns));
+                    loadReturns();
+                    alert(`İade #${returnId} çözüldü.`);
+                }
+            }
+        }
+
+        function getReturnKey(panel) {
+            const keys = {
+                'Müşteriler': 'internationalReturns',
+                'Satıcılar': 'internationalSellerReturns',
+                'Üreticiler': 'internationalProducerReturns',
+                'Toptancılar': 'internationalWholesalerReturns',
+                'Hammadeciler': 'internationalRawMaterialReturns'
+            };
+            return keys[panel];
+        }
+
+        function resolveDispute(disputeId) {
+            const action = confirm('Uyuşmazlığı çözmek istediğinizden emin misiniz?');
+            if (action) {
+                const disputes = JSON.parse(localStorage.getItem('internationalDisputes')) || [];
+                const dispute = disputes.find(d => d.id === parseInt(disputeId));
+                if (dispute) {
+                    dispute.status = 'resolved';
+                    localStorage.setItem('internationalDisputes', JSON.stringify(disputes));
+                    loadDisputes();
+                    alert(`Uyuşmazlık #${disputeId} çözüldü.`);
+                }
+            }
+        }
+
+        loadAllOrders();
+        loadOrderStats();
+        loadReturns();
+        loadDisputes();
+    </script>
+</body>
+</html>

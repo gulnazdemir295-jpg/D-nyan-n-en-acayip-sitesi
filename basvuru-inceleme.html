@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Başvuru İnceleme - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 8px;
+            border: 1px solid #ff0000;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 5px 10px;
+            margin: 2px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        .approve {
+            background-color: #00ff00;
+            color: #000000;
+        }
+        .reject {
+            background-color: #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Başvuru İnceleme</i></h1>
+    <p>Bekleyen başvuruları inceleyin ve onaylayın.</p>
+
+    <div class="section">
+        <h2>Bekleyen Başvurular</h2>
+        <table id="applicationsTable">
+            <thead>
+                <tr>
+                    <th>Panel</th>
+                    <th>Ad Soyad</th>
+                    <th>E-posta</th>
+                    <th>Şirket</th>
+                    <th>Başvuru Tarihi</th>
+                    <th>Belgeler</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <a href="admin-panel.html" class="button">Admin Paneli</a>
+    <a href="index.html" class="button">Ana Sayfa</a>
+
+    <div id="documentModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #ffffff; padding: 20px; border-radius: 5px; max-width: 80%; max-height: 80%; overflow: auto;">
+            <span id="closeModal" style="position: absolute; top: 10px; right: 20px; font-size: 30px; cursor: pointer;">&times;</span>
+            <img id="documentImage" src="" alt="Belge" style="max-width: 100%; max-height: 100%;">
+        </div>
+    </div>
+
+    <div id="approvalModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #ffffff; padding: 20px; border-radius: 5px; max-width: 600px;">
+            <span id="closeApprovalModal" style="position: absolute; top: 10px; right: 20px; font-size: 30px; cursor: pointer;">&times;</span>
+            <h2>Onaylama Özeti</h2>
+            <p id="approvalName"></p>
+            <p id="approvalWarning" style="color: #ff0000;"></p>
+            <p>Geçici Şifre: <span id="approvalPassword"></span></p>
+            <p>Telefon: <span id="approvalPhone"></span></p>
+            <p>E-posta: <span id="approvalEmail"></span></p>
+            <button class="button" onclick="sendEmail()">E-posta Gönder</button>
+            <button class="button" onclick="closeApprovalModal()">Çık</button>
+        </div>
+    </div>
+
+    <script>
+        function loadApplications() {
+            const applications = JSON.parse(localStorage.getItem('pending-applications')) || [];
+            const tbody = document.querySelector('#applicationsTable tbody');
+            tbody.innerHTML = '';
+            applications.forEach((app, index) => {
+                if (app.status === 'pending') {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${app.panel}</td>
+                        <td>${app.name}</td>
+                        <td>${app.email}</td>
+                        <td>${app.company}</td>
+                        <td>${new Date(app.submittedAt).toLocaleString('tr-TR')}</td>
+                        <td>
+                            <button class="button" onclick="viewDocument(${index}, 'idCopy')">Kimlik</button>
+                            <button class="button" onclick="viewDocument(${index}, 'taxCertificate')">Vergi Levhası</button>
+                            <button class="button" onclick="viewDocument(${index}, 'signatureCircular')">İmza Sirküleri</button>
+                        </td>
+                        <td>
+                            <button class="button approve" onclick="approveApplication(${index})">Onayla</button>
+                            <button class="button reject" onclick="rejectApplication(${index})">Reddet</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                }
+            });
+        }
+
+        function approveApplication(index) {
+            const applications = JSON.parse(localStorage.getItem('pending-applications')) || [];
+            const app = applications[index];
+            app.status = 'approved';
+            app.tempPassword = generatePassword();
+            // Move to approved-users
+            const approved = JSON.parse(localStorage.getItem('approved-users')) || [];
+            approved.push(app);
+            localStorage.setItem('approved-users', JSON.stringify(approved));
+            // Remove from pending
+            applications.splice(index, 1);
+            localStorage.setItem('pending-applications', JSON.stringify(applications));
+            // Show approval modal
+            document.getElementById('approvalName').textContent = `Ad Soyad: ${app.name}`;
+            document.getElementById('approvalWarning').textContent = app.panel === 'musteriler' ? 'Müşteridir' : `Firma: ${app.company}`;
+            document.getElementById('approvalPassword').textContent = app.tempPassword;
+            document.getElementById('approvalPhone').textContent = app.phone;
+            document.getElementById('approvalEmail').textContent = app.email;
+            document.getElementById('approvalModal').style.display = 'block';
+            loadApplications();
+        }
+
+        function rejectApplication(index) {
+            const applications = JSON.parse(localStorage.getItem('pending-applications')) || [];
+            applications[index].status = 'rejected';
+            localStorage.setItem('pending-applications', JSON.stringify(applications));
+            alert('Başvuru reddedildi.');
+            loadApplications();
+        }
+
+        function generatePassword() {
+            return Math.random().toString(36).slice(-8);
+        }
+
+        function viewDocument(index, docType) {
+            const applications = JSON.parse(localStorage.getItem('pending-applications')) || [];
+            const app = applications[index];
+            if (app && app[docType]) {
+                document.getElementById('documentImage').src = app[docType];
+                document.getElementById('documentModal').style.display = 'block';
+            } else {
+                alert('Belge bulunamadı.');
+            }
+        }
+
+        document.getElementById('closeModal').addEventListener('click', function() {
+            document.getElementById('documentModal').style.display = 'none';
+        });
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('documentModal')) {
+                document.getElementById('documentModal').style.display = 'none';
+            }
+        };
+
+        function sendEmail() {
+            alert('E-posta gönderildi.');
+        }
+
+        function closeApprovalModal() {
+            document.getElementById('approvalModal').style.display = 'none';
+        }
+
+        document.getElementById('closeApprovalModal').addEventListener('click', closeApprovalModal);
+
+        window.onload = loadApplications;
+    </script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Sanatları - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .filters {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 20px;
+            text-align: center;
+        }
+        .filters select, .filters input {
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+        }
+        .products {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 20px;
+        }
+        .product-card {
+            background-color: #ffffff;
+            color: #000000;
+            margin: 10px;
+            padding: 20px;
+            border-radius: 5px;
+            width: 300px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+        .product-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .button {
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        .artisan-info {
+            background-color: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i>El Sanatları</i></h1>
+        <p>Dünyanın dört bir yanından el sanatlarını keşfedin ve destekleyin.</p>
+    </div>
+
+    <div class="filters">
+        <select id="countryFilter">
+            <option value="">Tüm Ülkeler</option>
+            <option value="Türkiye">Türkiye</option>
+            <option value="İtalya">İtalya</option>
+            <option value="Yunanistan">Yunanistan</option>
+            <option value="İspanya">İspanya</option>
+            <option value="Fransa">Fransa</option>
+            <option value="Japonya">Japonya</option>
+            <option value="Meksika">Meksika</option>
+            <option value="Hindistan">Hindistan</option>
+            <option value="Çin">Çin</option>
+            <option value="Brezilya">Brezilya</option>
+        </select>
+        <input type="text" id="regionFilter" placeholder="Bölge ara...">
+        <button class="button" onclick="filterProducts()">Filtrele</button>
+    </div>
+
+    <div class="products" id="productsContainer">
+        <!-- Products will be loaded here -->
+    </div>
+
+    <div style="text-align: center; padding: 20px;">
+        <a href="index.html" class="button">Ana Sayfa</a>
+    </div>
+
+    <script>
+        function loadProducts() {
+            const container = document.getElementById('productsContainer');
+            container.innerHTML = '';
+
+            // Load products from all panels
+            const panels = ['hammadeciler', 'ureticiler', 'toptancilar', 'saticilar'];
+            let allProducts = [];
+
+            panels.forEach(panel => {
+                const products = JSON.parse(localStorage.getItem('products-' + panel)) || [];
+                allProducts = allProducts.concat(products);
+            });
+
+            // Filter for handicrafts
+            const handicraftProducts = allProducts.filter(p => p.category === 'El Sanatları');
+
+            handicraftProducts.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <img src="${product.photo || 'placeholder.jpg'}" alt="${product.name}">
+                    <h3>${product.name}</h3>
+                    <p><strong>Ülke:</strong> ${product.country}</p>
+                    <p><strong>Bölge:</strong> ${product.region}</p>
+                    <p><strong>Fiyat:</strong> ${product.price} TL</p>
+                    <div class="artisan-info">
+                        <p><strong>Zanaatçı:</strong> ${product.company}</p>
+                        <p><strong>Kültürel Bilgi:</strong> ${product.culturalInfo || 'Bilgi yok'}</p>
+                    </div>
+                    <button class="button" onclick="buyProduct('${product.name}')">Satın Al</button>
+                    <button class="button" onclick="viewArtisanStory('${product.name}')">Zanaatçı Hikayesi</button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterProducts() {
+            const countryFilter = document.getElementById('countryFilter').value;
+            const regionFilter = document.getElementById('regionFilter').value.toLowerCase();
+
+            const cards = document.querySelectorAll('.product-card');
+            cards.forEach(card => {
+                const country = card.querySelector('p:nth-child(2)').textContent.replace('Ülke: ', '');
+                const region = card.querySelector('p:nth-child(3)').textContent.replace('Bölge: ', '').toLowerCase();
+
+                const countryMatch = !countryFilter || country === countryFilter;
+                const regionMatch = !regionFilter || region.includes(regionFilter);
+
+                card.style.display = countryMatch && regionMatch ? 'block' : 'none';
+            });
+        }
+
+        function buyProduct(productName) {
+            alert(productName + ' satın alındı! El emeği göz nuru ürününüzü desteklediğiniz için teşekkürler.');
+            // Add to cart logic here
+        }
+
+        function viewArtisanStory(productName) {
+            alert(productName + ' ürününün zanaatçısı hakkında hikaye yakında eklenecek.');
+            // Show artisan story modal or page
+        }
+
+        // Load products on page load
+        loadProducts();
+    </script>
+</body>
+</html>

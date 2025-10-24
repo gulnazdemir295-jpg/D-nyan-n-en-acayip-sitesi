@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uluslararası Ticaret Raporları - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            float: left;
+            width: 200px;
+            padding: 20px;
+            background-color: #ffffff;
+            color: #000000;
+            border-right: 1px solid #ff0000;
+            height: 100vh;
+        }
+        .sidebar h3 {
+            color: #ff0000;
+        }
+        .sidebar .button {
+            display: block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px;
+            margin: 10px 0;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .sidebar .button:hover {
+            background-color: #cc0000;
+        }
+        .main {
+            margin-left: 240px;
+            padding: 50px;
+            text-align: center;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            background-color: #ffffff;
+            color: #000000;
+            text-align: left;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ff0000;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 10px;
+            min-width: 200px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>Uluslararası Raporlar</h3>
+        <a href="uluslararasi-ticaret.html" class="button">Geri Dön</a>
+        <a href="#purchaseReports" class="button">Alış Raporları</a>
+        <a href="#saleReports" class="button">Satış Raporları</a>
+        <a href="#profitReports" class="button">Karlılık Raporları</a>
+    </div>
+    <div class="main">
+        <h1><i>Uluslararası Ticaret Raporları</i></h1>
+        <p>Uluslararası ticaret işlemlerinizin raporlarını inceleyin.</p>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Toplam Alış Tutarı</h3>
+                <p id="totalPurchase">0 USD</p>
+            </div>
+            <div class="stat-card">
+                <h3>Toplam Satış Tutarı</h3>
+                <p id="totalSale">0 USD</p>
+            </div>
+            <div class="stat-card">
+                <h3>Net Kar/Zarar</h3>
+                <p id="netProfit">0 USD</p>
+            </div>
+            <div class="stat-card">
+                <h3>İşlem Sayısı</h3>
+                <p id="totalTransactions">0</p>
+            </div>
+        </div>
+
+        <div id="purchaseReports" class="section">
+            <h2>Alış Raporları</h2>
+            <table id="purchaseReportTable">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Tedarikçi Ülke</th>
+                        <th>Ürün</th>
+                        <th>Miktar</th>
+                        <th>Toplam Tutar (USD)</th>
+                        <th>Gümrük Vergisi</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="saleReports" class="section">
+            <h2>Satış Raporları</h2>
+            <table id="saleReportTable">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Müşteri Ülke</th>
+                        <th>Ürün</th>
+                        <th>Miktar</th>
+                        <th>Toplam Tutar (USD)</th>
+                        <th>İhracat Vergisi</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="profitReports" class="section">
+            <h2>Karlılık Raporları</h2>
+            <table id="profitReportTable">
+                <thead>
+                    <tr>
+                        <th>Ürün</th>
+                        <th>Alış Tutarı (USD)</th>
+                        <th>Satış Tutarı (USD)</th>
+                        <th>Kar/Zarar (USD)</th>
+                        <th>Kar Marjı (%)</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <a href="uluslararasi-ticaret.html" class="button">Uluslararası Ticaret</a>
+        <a href="admin-panel.html" class="button">Admin Paneli</a>
+    </div>
+
+    <script>
+        function loadReports() {
+            const purchases = JSON.parse(localStorage.getItem('internationalPurchases')) || [];
+            const sales = JSON.parse(localStorage.getItem('internationalSales')) || [];
+
+            // Stats
+            const totalPurchase = purchases.reduce((sum, p) => sum + parseFloat(p.totalCost), 0);
+            const totalSale = sales.reduce((sum, s) => sum + parseFloat(s.totalRevenue), 0);
+            const netProfit = totalSale - totalPurchase;
+            const totalTransactions = purchases.length + sales.length;
+
+            document.getElementById('totalPurchase').textContent = totalPurchase.toFixed(2) + ' USD';
+            document.getElementById('totalSale').textContent = totalSale.toFixed(2) + ' USD';
+            document.getElementById('netProfit').textContent = netProfit.toFixed(2) + ' USD';
+            document.getElementById('totalTransactions').textContent = totalTransactions;
+
+            // Purchase Reports
+            const purchaseTbody = document.querySelector('#purchaseReportTable tbody');
+            purchaseTbody.innerHTML = '';
+            purchases.forEach(purchase => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date(purchase.date).toLocaleDateString('tr-TR')}</td>
+                    <td>${purchase.supplierCountry}</td>
+                    <td>${purchase.productName}</td>
+                    <td>${purchase.quantity}</td>
+                    <td>${purchase.totalCost} USD</td>
+                    <td>${purchase.customsDuty}%</td>
+                `;
+                purchaseTbody.appendChild(row);
+            });
+
+            // Sale Reports
+            const saleTbody = document.querySelector('#saleReportTable tbody');
+            saleTbody.innerHTML = '';
+            sales.forEach(sale => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date(sale.date).toLocaleDateString('tr-TR')}</td>
+                    <td>${sale.customerCountry}</td>
+                    <td>${sale.productName}</td>
+                    <td>${sale.quantity}</td>
+                    <td>${sale.totalRevenue} USD</td>
+                    <td>${sale.exportDuty}%</td>
+                `;
+                saleTbody.appendChild(row);
+            });
+
+            // Profit Reports
+            const profitTbody = document.querySelector('#profitReportTable tbody');
+            profitTbody.innerHTML = '';
+            const productProfits = {};
+
+            purchases.forEach(p => {
+                if (!productProfits[p.productName]) productProfits[p.productName] = { purchase: 0, sale: 0 };
+                productProfits[p.productName].purchase += parseFloat(p.totalCost);
+            });
+
+            sales.forEach(s => {
+                if (!productProfits[s.productName]) productProfits[s.productName] = { purchase: 0, sale: 0 };
+                productProfits[s.productName].sale += parseFloat(s.totalRevenue);
+            });
+
+            Object.keys(productProfits).forEach(product => {
+                const profit = productProfits[product].sale - productProfits[product].purchase;
+                const margin = productProfits[product].sale > 0 ? (profit / productProfits[product].sale * 100).toFixed(2) : 0;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product}</td>
+                    <td>${productProfits[product].purchase.toFixed(2)} USD</td>
+                    <td>${productProfits[product].sale.toFixed(2)} USD</td>
+                    <td>${profit.toFixed(2)} USD</td>
+                    <td>${margin}%</td>
+                `;
+                profitTbody.appendChild(row);
+            });
+        }
+
+        loadReports();
+    </script>
+</body>
+</html>

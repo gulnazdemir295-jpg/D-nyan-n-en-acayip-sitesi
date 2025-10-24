@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teslimat Takip - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 5px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ff0000;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Teslimat Takip</i></h1>
+    <p>Sipariş teslimatlarını takip edin.</p>
+
+    <table id="deliveryTable">
+        <thead>
+            <tr>
+                <th>Sipariş No</th>
+                <th>Müşteri</th>
+                <th>Durum</th>
+                <th>Tarih</th>
+                <th>İşlem</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Deliveries will be populated here -->
+        </tbody>
+    </table>
+
+    <button class="button" onclick="updateStatus()">Durum Güncelle</button>
+    <a href="admin-panel.html" class="button">Admin Paneli</a>
+
+    <script>
+        let deliveries = JSON.parse(localStorage.getItem('deliveries')) || [
+            { orderId: 'ORD001', customer: 'Müşteri A', status: 'Hazırlanıyor', date: '2023-10-01' },
+            { orderId: 'ORD002', customer: 'Müşteri B', status: 'Yolda', date: '2023-10-02' }
+        ];
+
+        function loadDeliveries() {
+            const tbody = document.querySelector('#deliveryTable tbody');
+            tbody.innerHTML = '';
+            deliveries.forEach((delivery, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${delivery.orderId}</td>
+                    <td>${delivery.customer}</td>
+                    <td>${delivery.status}</td>
+                    <td>${delivery.date}</td>
+                    <td><button onclick="changeStatus(${index})">Güncelle</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+            localStorage.setItem('deliveries', JSON.stringify(deliveries));
+        }
+
+        function changeStatus(index) {
+            const newStatus = prompt('Yeni Durum:');
+            if (newStatus) {
+                deliveries[index].status = newStatus;
+                loadDeliveries();
+            }
+        }
+
+        loadDeliveries();
+    </script>
+</body>
+</html>

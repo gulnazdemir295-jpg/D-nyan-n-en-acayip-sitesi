@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tüm Firma Haritası - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .map {
+            width: 80%;
+            height: 400px;
+            background-color: #ffffff;
+            color: #000000;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #ff0000;
+            border-radius: 10px;
+        }
+        .button {
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        select, input {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Türkiye Üretiyor Haritası</i></h1>
+    <p>Kayıtlı tüm firmaları haritada görün ve iletişime geçin.</p>
+
+    <div class="map" id="mapContainer">
+        <p>Türkiye haritası (Simülasyon) - Firmalar işaretli.</p>
+    </div>
+
+    <div style="margin: 20px 0; padding: 20px; background-color: #ffffff; color: #000000; border-radius: 5px;">
+        <h2>Firma Ara</h2>
+        <label for="citySelect">İl Seç:</label>
+        <select id="citySelect">
+            <option value="">Tüm İller</option>
+            <option value="İstanbul">İstanbul</option>
+            <option value="Ankara">Ankara</option>
+            <option value="İzmir">İzmir</option>
+            <option value="Bursa">Bursa</option>
+            <option value="Antalya">Antalya</option>
+            <!-- Add more cities as needed -->
+        </select>
+        <label for="productSearch">Hangi ürünü arıyorsunuz?</label>
+        <input type="text" id="productSearch" placeholder="Ürün adı girin...">
+        <button class="button" onclick="searchCompanies()">Ara</button>
+    </div>
+
+    <div id="companyList" style="margin: 20px 0;">
+        <!-- Companies will be listed here -->
+    </div>
+
+    <a href="musteriler-panel.html" class="button">Geri</a>
+    <a href="index.html" class="button">Ana Sayfa</a>
+
+    <script>
+        // Simulate map with company markers
+        const companies = JSON.parse(localStorage.getItem('approved-users')) || [];
+        const mapContainer = document.getElementById('mapContainer');
+        mapContainer.innerHTML = '<p>Türkiye haritası (Simülasyon) - Firmalar işaretli.</p><div id="markers"></div>';
+
+        function displayCompanies(companiesToShow) {
+            const companyList = document.getElementById('companyList');
+            companyList.innerHTML = '';
+            if (companiesToShow.length === 0) {
+                companyList.innerHTML = '<p>Hiçbir firma bulunamadı.</p>';
+                return;
+            }
+            companiesToShow.forEach(company => {
+                const card = document.createElement('div');
+                card.style.border = '1px solid #ff0000';
+                card.style.padding = '10px';
+                card.style.margin = '10px 0';
+                card.style.backgroundColor = '#ffffff';
+                card.style.color = '#000000';
+                card.style.borderRadius = '5px';
+                card.innerHTML = `
+                    <h3>${company.name || company.company || 'Firma Adı'}</h3>
+                    <p><strong>Adres:</strong> ${company.address || 'Belirtilmemiş'}</p>
+                    <p><strong>Telefon:</strong> ${company.phone || 'Belirtilmemiş'}</p>
+                    <p><strong>E-posta:</strong> ${company.email}</p>
+                    <p><strong>Panel:</strong> ${company.panel}</p>
+                    <button class="button" onclick="contactCompany('${company.email}')">İletişime Geç</button>
+                `;
+                companyList.appendChild(card);
+            });
+        }
+
+        function searchCompanies() {
+            const city = document.getElementById('citySelect').value;
+            const product = document.getElementById('productSearch').value.toLowerCase();
+            let filtered = companies;
+
+            if (city) {
+                filtered = filtered.filter(c => c.address && c.address.includes(city));
+            }
+
+            if (product) {
+                filtered = filtered.filter(c => {
+                    const panelProducts = JSON.parse(localStorage.getItem(`products-${c.panel}`)) || [];
+                    return panelProducts.some(p => p.name && p.name.toLowerCase().includes(product));
+                });
+            }
+
+            displayCompanies(filtered);
+        }
+
+        function contactCompany(email) {
+            const subject = 'Firma İletişim Talebi';
+            const body = 'Merhaba, firmanızla iletişime geçmek istiyorum.';
+            window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        }
+
+        // Initial display
+        displayCompanies(companies);
+    </script>
+</body>
+</html>

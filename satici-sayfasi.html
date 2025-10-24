@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satıcı Sayfası - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+        .seller-info {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 5px;
+        }
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .product-card {
+            background-color: #ffffff;
+            color: #000000;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            padding: 15px;
+            text-align: center;
+        }
+        .product-card img {
+            max-width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .product-card video {
+            max-width: 100%;
+            height: 200px;
+            border-radius: 5px;
+        }
+        .button {
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        .back-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .back-link:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">Ana Sayfa</a>
+
+    <div class="header">
+        <h1>Satıcı Sayfası</h1>
+        <p>Satıcıların ürünlerini ve bilgilerini görüntüleyin.</p>
+    </div>
+
+    <div class="seller-info" id="sellerInfo">
+        <!-- Satıcı bilgileri burada yüklenecek -->
+    </div>
+
+    <div class="products" id="productsList">
+        <!-- Ürünler burada yüklenecek -->
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const sellerEmail = urlParams.get('seller');
+
+        if (!sellerEmail) {
+            document.getElementById('sellerInfo').innerHTML = '<p>Satıcı belirtilmemiş.</p>';
+            return;
+        }
+
+        // Satıcı bilgilerini yükle
+        const approvedUsers = JSON.parse(localStorage.getItem('approved-users')) || [];
+        const seller = approvedUsers.find(u => u.email === sellerEmail && u.panel === 'saticilar');
+
+        if (seller) {
+            document.getElementById('sellerInfo').innerHTML = `
+                <h2>${seller.company || seller.name}</h2>
+                <p><strong>Ad Soyad:</strong> ${seller.name}</p>
+                <p><strong>E-posta:</strong> ${seller.email}</p>
+                <p><strong>Telefon:</strong> ${seller.phone || 'Belirtilmemiş'}</p>
+                <p><strong>Adres:</strong> ${seller.address || 'Belirtilmemiş'}</p>
+                <p><strong>Şehir:</strong> ${seller.city || 'Belirtilmemiş'}</p>
+                <p><strong>İlçe:</strong> ${seller.district || 'Belirtilmemiş'}</p>
+                <p><strong>Bölge:</strong> ${seller.region || 'Belirtilmemiş'}</p>
+            `;
+        } else {
+            document.getElementById('sellerInfo').innerHTML = '<p>Satıcı bulunamadı.</p>';
+        }
+
+        // Ürünleri yükle
+        const products = JSON.parse(localStorage.getItem('products-saticilar')) || [];
+        const sellerProducts = products.filter(p => p.company === seller?.company);
+
+        const productsList = document.getElementById('productsList');
+        if (sellerProducts.length === 0) {
+            productsList.innerHTML = '<p>Bu satıcının henüz ürünü yok.</p>';
+        } else {
+            sellerProducts.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    ${product.photo ? `<img src="${product.photo}" alt="${product.name}">` : '<p>Görsel Yok</p>'}
+                    ${product.video ? `<video controls><source src="${product.video}" type="video/mp4"></video>` : ''}
+                    <h3>${product.name}</h3>
+                    <p>Fiyat: ${product.price} TL</p>
+                    <p>Stok: ${product.stock}</p>
+                    <p>Kategori: ${product.category || 'Belirtilmemiş'}</p>
+                    <p>Ülke: ${product.country || 'Belirtilmemiş'}</p>
+                    <p>Bölge: ${product.region || 'Belirtilmemiş'}</p>
+                    ${product.culturalInfo ? `<p>Kültürel Bilgi: ${product.culturalInfo}</p>` : ''}
+                    <button class="button" onclick="buyProduct('${product.name}')">Satın Al</button>
+                `;
+                productsList.appendChild(card);
+            });
+        }
+
+        function buyProduct(productName) {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (!currentUser) {
+                alert('Alışveriş yapmak için giriş yapmalısınız.');
+                window.location.href = 'musteriler-kayit.html';
+                return;
+            }
+            const quantity = prompt('Miktar girin:', '1');
+            if (!quantity || isNaN(quantity)) return;
+
+            const product = sellerProducts.find(p => p.name === productName);
+            const totalPrice = product.price * quantity;
+            const order = {
+                customer: currentUser.email,
+                sellerPanel: 'saticilar',
+                product: productName,
+                quantity: parseInt(quantity),
+                totalPrice: totalPrice,
+                date: new Date().toISOString()
+            };
+            const orders = JSON.parse(localStorage.getItem('orders')) || [];
+            orders.push(order);
+            localStorage.setItem('orders', JSON.stringify(orders));
+
+            // Ödeme admin hesabına
+            let adminBalance = parseFloat(localStorage.getItem('adminBalance')) || 0;
+            adminBalance += totalPrice;
+            localStorage.setItem('adminBalance', adminBalance);
+
+            alert('Sipariş verildi. Ödeme admin hesabına yapıldı.');
+        }
+    </script>
+</body>
+</html>

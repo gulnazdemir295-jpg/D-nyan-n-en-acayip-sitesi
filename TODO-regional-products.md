@@ -1,0 +1,22 @@
+# TODO List for Regional Products and Handicrafts Feature
+
+- [x] Update urun-ekle.html to include new categories: Yöresel Lezzetler, El Sanatları
+- [x] Add country and region fields to product registration
+- [ ] Update urun-yonetimi.html to filter by region/country
+- [x] Create yoresel-lezzetler.html page for showcasing local flavors
+- [x] Create el-sanatlari.html page for handicrafts
+- [x] Create bolgesel-urun-takip.html for admin tracking
+- [x] Create yoresel-lezzetler-kayit.html and yoresel-lezzetler-panel.html
+- [x] Create el-sanatlari-kayit.html and el-sanatlari-panel.html
+- [x] Add registration links to index.html
+- [x] Add panel links to admin-panel.html
+- [ ] Update tum-firma-haritasi.html to highlight regional products on map
+- [ ] Add regional search filters to urun-ara.html
+- [ ] Update registration forms to include country/region for producers
+- [ ] Add cultural information sections to product pages
+- [ ] Create regional promotion section in admin panel
+- [ ] Add local specialty recommendations
+- [ ] Update live broadcasts to feature regional products
+- [ ] Add artisan profiles and stories
+- [ ] Implement regional shipping cost calculations
+- [ ] Add cultural exchange features (recipes, stories, traditions)

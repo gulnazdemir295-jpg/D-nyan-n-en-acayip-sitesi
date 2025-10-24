@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hareket Takip - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 8px;
+            border: 1px solid #ff0000;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 10px 0;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Hareket Takip</i></h1>
+    <p>Saatlik panel değişikliklerini takip edin.</p>
+
+    <div class="section">
+        <h2>Panel Değişiklikleri (Saatlik Güncellenir)</h2>
+        <p>Son Güncelleme: <span id="lastUpdate"></span></p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Panel</th>
+                    <th>Değişiklik</th>
+                    <th>Zaman</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Hammadeciler Paneli</td>
+                    <td>Canlı Yayın Başlatıldı</td>
+                    <td>14:00</td>
+                </tr>
+                <tr>
+                    <td>Üreticiler Paneli</td>
+                    <td>Ürün Güncellendi</td>
+                    <td>13:30</td>
+                </tr>
+                <tr>
+                    <td>Toptancılar Paneli</td>
+                    <td>Yeni Sipariş</td>
+                    <td>12:45</td>
+                </tr>
+                <tr>
+                    <td>Satıcılar Paneli</td>
+                    <td>Canlı Yayın Başlatıldı</td>
+                    <td>11:20</td>
+                </tr>
+                <tr>
+                    <td>Müşteriler Paneli</td>
+                    <td>Sipariş Verildi</td>
+                    <td>10:15</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <a href="admin-panel.html" class="button">Admin Paneli</a>
+    <a href="index.html" class="button">Ana Sayfa</a>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const time = now.toLocaleTimeString('tr-TR');
+            document.getElementById('lastUpdate').textContent = time;
+        }
+        updateTime();
+        setInterval(updateTime, 3600000); // Update every hour
+    </script>
+</body>
+</html>

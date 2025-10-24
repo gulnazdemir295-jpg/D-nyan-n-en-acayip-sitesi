@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bölgesel Ürün Takip - Admin Paneli</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 10px;
+            min-width: 200px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+        .filters {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .filters select, .filters input {
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+        }
+        .products-table {
+            background-color: #ffffff;
+            color: #000000;
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .products-table th, .products-table td {
+            border: 1px solid #ff0000;
+            padding: 10px;
+            text-align: left;
+        }
+        .products-table th {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+        .button {
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        .regional-map {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i>Bölgesel Ürün Takip - Admin Paneli</i></h1>
+        <p>Yöresel lezzetler ve el sanatlarını takip edin ve yönetin.</p>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <h3>Toplam Bölgesel Ürün</h3>
+            <p id="totalRegionalProducts">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Yöresel Lezzetler</h3>
+            <p id="totalFlavors">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>El Sanatları</h3>
+            <p id="totalHandicrafts">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Kapsanan Ülkeler</h3>
+            <p id="totalCountries">0</p>
+        </div>
+    </div>
+
+    <div class="filters">
+        <select id="categoryFilter">
+            <option value="">Tüm Kategoriler</option>
+            <option value="Yöresel Lezzetler">Yöresel Lezzetler</option>
+            <option value="El Sanatları">El Sanatları</option>
+        </select>
+        <select id="countryFilter">
+            <option value="">Tüm Ülkeler</option>
+            <option value="Türkiye">Türkiye</option>
+            <option value="İtalya">İtalya</option>
+            <option value="Yunanistan">Yunanistan</option>
+            <option value="İspanya">İspanya</option>
+            <option value="Fransa">Fransa</option>
+            <option value="Japonya">Japonya</option>
+            <option value="Meksika">Meksika</option>
+            <option value="Hindistan">Hindistan</option>
+            <option value="Çin">Çin</option>
+            <option value="Brezilya">Brezilya</option>
+        </select>
+        <input type="text" id="regionFilter" placeholder="Bölge ara...">
+        <button class="button" onclick="filterProducts()">Filtrele</button>
+        <button class="button" onclick="exportData()">Veriyi Dışa Aktar</button>
+    </div>
+
+    <div class="regional-map">
+        <p>Harita Görünümü - Bölgesel ürün dağılımı yakında eklenecek</p>
+    </div>
+
+    <table class="products-table" id="productsTable">
+        <thead>
+            <tr>
+                <th>Ürün Adı</th>
+                <th>Kategori</th>
+                <th>Ülke</th>
+                <th>Bölge</th>
+                <th>Firma</th>
+                <th>Fiyat</th>
+                <th>Stok</th>
+                <th>Kültürel Bilgi</th>
+                <th>İşlemler</th>
+            </tr>
+        </thead>
+        <tbody id="productsTableBody">
+            <!-- Products will be loaded here -->
+        </tbody>
+    </table>
+
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="admin-panel.html" class="button">Admin Paneli</a>
+        <a href="index.html" class="button">Ana Sayfa</a>
+    </div>
+
+    <script>
+        function loadProducts() {
+            const tableBody = document.getElementById('productsTableBody');
+            tableBody.innerHTML = '';
+
+            // Load products from all panels
+            const panels = ['hammadeciler', 'ureticiler', 'toptancilar', 'saticilar'];
+            let allProducts = [];
+            let totalRegional = 0;
+            let totalFlavors = 0;
+            let totalHandicrafts = 0;
+            const countries = new Set();
+
+            panels.forEach(panel => {
+                const products = JSON.parse(localStorage.getItem('products-' + panel)) || [];
+                products.forEach(product => {
+                    if (product.category === 'Yöresel Lezzetler' || product.category === 'El Sanatları') {
+                        allProducts.push({...product, panel: panel});
+                        totalRegional++;
+                        if (product.category === 'Yöresel Lezzetler') totalFlavors++;
+                        if (product.category === 'El Sanatları') totalHandicrafts++;
+                        if (product.country) countries.add(product.country);
+                    }
+                });
+            });
+
+            // Update stats
+            document.getElementById('totalRegionalProducts').textContent = totalRegional;
+            document.getElementById('totalFlavors').textContent = totalFlavors;
+            document.getElementById('totalHandicrafts').textContent = totalHandicrafts;
+            document.getElementById('totalCountries').textContent = countries.size;
+
+            // Display products
+            allProducts.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>${product.category}</td>
+                    <td>${product.country || '-'}</td>
+                    <td>${product.region || '-'}</td>
+                    <td>${product.company}</td>
+                    <td>${product.price} TL</td>
+                    <td>${product.stock}</td>
+                    <td>${product.culturalInfo || '-'}</td>
+                    <td>
+                        <button class="button" onclick="viewProduct('${product.name}')">Görüntüle</button>
+                        <button class="button" onclick="editProduct('${product.name}')">Düzenle</button>
+                        <button class="button" onclick="deleteProduct('${product.name}')">Sil</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function filterProducts() {
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const countryFilter = document.getElementById('countryFilter').value;
+            const regionFilter = document.getElementById('regionFilter').value.toLowerCase();
+
+            const rows = document.querySelectorAll('#productsTableBody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const category = cells[1].textContent;
+                const country = cells[2].textContent;
+                const region = cells[3].textContent.toLowerCase();
+
+                const categoryMatch = !categoryFilter || category === categoryFilter;
+                const countryMatch = !countryFilter || country === countryFilter;
+                const regionMatch = !regionFilter || region.includes(regionFilter);
+
+                row.style.display = categoryMatch && countryMatch && regionMatch ? '' : 'none';
+            });
+        }
+
+        function exportData() {
+            const rows = document.querySelectorAll('#productsTableBody tr');
+            let csv = 'Ürün Adı,Kategori,Ülke,Bölge,Firma,Fiyat,Stok,Kültürel Bilgi\n';
+
+            rows.forEach(row => {
+                if (row.style.display !== 'none') {
+                    const cells = row.querySelectorAll('td');
+                    const rowData = Array.from(cells).slice(0, -1).map(cell => cell.textContent).join(',');
+                    csv += rowData + '\n';
+                }
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'bolgesel-urunler.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function viewProduct(productName) {
+            alert(productName + ' ürün detayları yakında eklenecek.');
+        }
+
+        function editProduct(productName) {
+            alert(productName + ' düzenleme sayfası yakında eklenecek.');
+        }
+
+        function deleteProduct(productName) {
+            if (confirm(productName + ' ürününü silmek istediğinizden emin misiniz?')) {
+                alert('Silme işlemi yakında uygulanacak.');
+            }
+        }
+
+        // Load products on page load
+        loadProducts();
+    </script>
+</body>
+</html>

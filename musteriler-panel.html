@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Müşteriler Paneli - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            float: left;
+            width: 200px;
+            padding: 20px;
+            background-color: #ffffff;
+            color: #000000;
+            border-right: 1px solid #ff0000;
+            height: 100vh;
+        }
+        .sidebar h3 {
+            color: #ff0000;
+        }
+        .sidebar .button {
+            display: block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px;
+            margin: 10px 0;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .sidebar .button:hover {
+            background-color: #cc0000;
+        }
+        .main {
+            margin-left: 240px;
+            padding: 50px;
+            text-align: center;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>Hoşgeldiniz</h3>
+        <p id="userName">Ad Soyad: </p>
+        <p id="userEmail">E-posta: </p>
+        <a href="canli-izle.html" class="button">Canlı Yayın İzle</a>
+        <a href="urun-alis.html?panel=musteriler&supplier=saticilar" class="button">Satıcılardan Al</a>
+        <a href="tum-firma-haritasi.html" class="button">Haritada Ara</a>
+        <a href="siparislerim.html?panel=musteriler" class="button">Siparişlerim</a>
+        <a href="mesajlar.html?panel=musteriler" class="button">Mesajlar</a>
+        <a href="uluslararasi-canli-izle.html" class="button">Uluslararası Canlı Yayın İzle</a>
+        <a href="uluslararasi-siparis-takibi-musteri.html" class="button">Uluslararası Sipariş Takibi</a>
+    </div>
+    <div class="main">
+        <h1><i>Müşteriler Paneli</i></h1>
+        <p>Alışveriş işlemlerinizi buradan yönetin.</p>
+
+        <div style="margin: 20px 0; padding: 20px; border: 1px solid #ff0000; border-radius: 5px;">
+            <h2>Ürün Ara ve Satın Al</h2>
+            <form id="searchForm">
+                <label>Ürün Adı: <input type="text" id="productNameFilter" placeholder="Ürün adı girin"></label><br>
+                <label>Şirket Adı: <input type="text" id="companyFilter" placeholder="Şirket adı girin"></label><br>
+                <label>Şehir: <input type="text" id="cityFilter" placeholder="Şehir girin"></label><br>
+                <label>İlçe: <input type="text" id="districtFilter" placeholder="İlçe girin"></label><br>
+                <label>Bölge: <input type="text" id="regionFilter" placeholder="Bölge girin"></label><br>
+                <button type="button" class="button" onclick="searchProducts()">Ara</button>
+            </form>
+            <div id="productList" style="margin-top: 20px;">
+                <!-- Products will be listed here -->
+            </div>
+        </div>
+
+        <div style="margin: 20px 0; padding: 20px; border: 1px solid #ff0000; border-radius: 5px;">
+            <h2>Satıcıları Görüntüle</h2>
+            <div id="sellersList" style="margin-top: 20px;">
+                <!-- Sellers will be listed here -->
+            </div>
+        </div>
+
+        <a href="index.html" class="button">Ana Sayfa</a>
+
+
+    </div>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser) {
+            window.location.href = 'index.html';
+        } else {
+            document.getElementById('userName').innerText = 'Ad Soyad: ' + currentUser.name;
+            document.getElementById('userEmail').innerText = 'E-posta: ' + currentUser.email;
+        }
+
+        let allProducts = [];
+
+        function loadAllProducts() {
+            const panels = ['saticilar']; // Only sellers for customers
+            allProducts = [];
+            panels.forEach(panel => {
+                const products = JSON.parse(localStorage.getItem('products-' + panel)) || [];
+                allProducts = allProducts.concat(products.map(p => ({ ...p, sellerPanel: panel })));
+            });
+        }
+
+        function searchProducts() {
+            const productName = document.getElementById('productNameFilter').value.toLowerCase();
+            const company = document.getElementById('companyFilter').value.toLowerCase();
+            const city = document.getElementById('cityFilter').value.toLowerCase();
+            const district = document.getElementById('districtFilter').value.toLowerCase();
+            const region = document.getElementById('regionFilter').value.toLowerCase();
+
+            const filtered = allProducts.filter(p =>
+                (!productName || p.name.toLowerCase().includes(productName)) &&
+                (!company || (p.company && p.company.toLowerCase().includes(company))) &&
+                (!city || (p.city && p.city.toLowerCase().includes(city))) &&
+                (!district || (p.district && p.district.toLowerCase().includes(district))) &&
+                (!region || (p.region && p.region.toLowerCase().includes(region)))
+            );
+
+            displayProducts(filtered);
+        }
+
+        function displayProducts(products) {
+            const productList = document.getElementById('productList');
+            productList.innerHTML = '';
+            if (products.length === 0) {
+                productList.innerHTML = '<p>Hiç ürün bulunamadı.</p>';
+                return;
+            }
+            products.forEach(product => {
+                const item = document.createElement('div');
+                item.style.border = '1px solid #ff0000';
+                item.style.padding = '10px';
+                item.style.margin = '10px 0';
+                item.style.backgroundColor = '#ffffff';
+                item.style.color = '#000000';
+                item.style.borderRadius = '5px';
+                item.innerHTML = `
+                    <h3>${product.name}</h3>
+                    <p>Fiyat: ${product.price} TL</p>
+                    <p>Şirket: ${product.company || 'Bilinmiyor'}</p>
+                    <p>Şehir: ${product.city || 'Bilinmiyor'}</p>
+                    <p>İlçe: ${product.district || 'Bilinmiyor'}</p>
+                    <p>Bölge: ${product.region || 'Bilinmiyor'}</p>
+                    <label>Miktar: <input type="number" min="1" value="1" id="qty-${product.name}"></label>
+                    <button class="button" onclick="buyProduct('${product.name}', '${product.sellerPanel}')">Satın Al</button>
+                `;
+                productList.appendChild(item);
+            });
+        }
+
+        function buyProduct(productName, sellerPanel) {
+            const quantity = document.getElementById(`qty-${productName}`).value;
+            const products = JSON.parse(localStorage.getItem('products-' + sellerPanel)) || [];
+            const product = products.find(p => p.name === productName);
+            if (!product) {
+                alert('Ürün bulunamadı.');
+                return;
+            }
+            const totalPrice = product.price * quantity;
+            const order = {
+                customer: currentUser.email,
+                sellerPanel: sellerPanel,
+                product: productName,
+                quantity: quantity,
+                totalPrice: totalPrice,
+                date: new Date().toISOString()
+            };
+            const orders = JSON.parse(localStorage.getItem('orders')) || [];
+            orders.push(order);
+            localStorage.setItem('orders', JSON.stringify(orders));
+            // Payment to admin
+            let adminBalance = parseFloat(localStorage.getItem('adminBalance')) || 0;
+            adminBalance += totalPrice;
+            localStorage.setItem('adminBalance', adminBalance);
+            alert('Sipariş verildi. Ödeme admin hesabına yapıldı.');
+        }
+
+        loadAllProducts();
+        searchProducts(); // Initial display
+        loadSellers(); // Load sellers
+
+        function loadSellers() {
+            const approvedUsers = JSON.parse(localStorage.getItem('approved-users')) || [];
+            const sellers = approvedUsers.filter(u => u.panel === 'saticilar');
+            const sellersList = document.getElementById('sellersList');
+            sellersList.innerHTML = '';
+            if (sellers.length === 0) {
+                sellersList.innerHTML = '<p>Henüz satıcı yok.</p>';
+                return;
+            }
+            sellers.forEach(seller => {
+                const card = document.createElement('div');
+                card.style.border = '1px solid #ff0000';
+                card.style.padding = '10px';
+                card.style.margin = '10px 0';
+                card.style.backgroundColor = '#ffffff';
+                card.style.color = '#000000';
+                card.style.borderRadius = '5px';
+                card.innerHTML = `
+                    <h3>${seller.company || seller.name}</h3>
+                    <p>Şehir: ${seller.city || 'Belirtilmemiş'}</p>
+                    <p>Bölge: ${seller.region || 'Belirtilmemiş'}</p>
+                    <button class="button" onclick="viewSellerPage('${seller.email}')">Sayfasını Görüntüle</button>
+                `;
+                sellersList.appendChild(card);
+            });
+        }
+
+        function viewSellerPage(sellerEmail) {
+            window.location.href = 'satici-sayfasi.html?seller=' + encodeURIComponent(sellerEmail);
+        }
+
+        function editProduct(product) {
+            alert(product + ' düzenleniyor.');
+        }
+        function deleteProduct(product) {
+            alert(product + ' siliniyor.');
+        }
+        function liveBroadcast(product) {
+            alert(product + ' için canlı yayın açılıyor.');
+        }
+        function updateStatus(orderId, newStatus) {
+            document.getElementById('status-' + orderId).innerText = newStatus;
+            alert('Sipariş ' + orderId + ' durumu güncellendi: ' + newStatus);
+        }
+    </script>
+</body>
+</html>

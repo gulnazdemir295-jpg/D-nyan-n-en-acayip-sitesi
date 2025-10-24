@@ -1,0 +1,23 @@
+# TODO List for POS System Integration
+
+- [x] Create dukkan-pos.html - Main POS interface for physical stores
+- [x] Create satis-gecmisi.html - Sales history and reporting page
+- [ ] Create stok-senkronizasyon.html - Stock synchronization page
+- [ ] Update stok-takip.html to show real-time sync status
+- [x] Add POS access to saticilar panel
+- [x] Add POS access to hammadeciler panel
+- [x] Add POS access to ureticiler panel
+- [x] Add POS access to toptancilar panel
+- [x] Add POS access to yoresel-lezzetler panel
+- [x] Add POS access to el-sanatlari panel
+- [x] Add POS tracking to admin panel
+- [x] Implement automatic stock updates when sales are recorded
+- [x] Add sales history and reporting
+- [ ] Create barcode scanner simulation
+- [ ] Add inventory alerts for low stock
+- [ ] Implement offline mode for POS
+- [ ] Add shift management for store employees
+- [ ] Create daily sales reports
+- [ ] Add customer loyalty points integration
+- [ ] Implement return/refund processing
+- [ ] Add multi-store management

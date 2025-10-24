@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muhasebe - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 5px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ff0000;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+        .summary {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Muhasebe</i></h1>
+    <p>Muhasebe kayıtlarını ve finansal hareketleri yönetin.</p>
+
+    <div class="summary">
+        <h2>Özet Bilgiler</h2>
+        <p>Toplam Gelir: <span id="totalIncome">0 TL</span></p>
+        <p>Toplam Gider: <span id="totalExpense">0 TL</span></p>
+        <p>Net Kar: <span id="netProfit">0 TL</span></p>
+    </div>
+
+    <table id="accountingTable">
+        <thead>
+            <tr>
+                <th>Tarih</th>
+                <th>Açıklama</th>
+                <th>Tür</th>
+                <th>Tutar</th>
+                <th>İşlem</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Entries will be populated here -->
+        </tbody>
+    </table>
+
+    <button class="button" onclick="addEntry()">Yeni Kayıt Ekle</button>
+    <a href="admin-panel.html" class="button">Admin Paneli</a>
+
+    <script>
+        let accountingEntries = JSON.parse(localStorage.getItem('accountingEntries')) || [];
+
+        function loadAccounting() {
+            const tbody = document.querySelector('#accountingTable tbody');
+            tbody.innerHTML = '';
+            let totalIncome = 0;
+            let totalExpense = 0;
+            accountingEntries.forEach((entry, index) => {
+                const row = document.createElement('tr');
+                const date = new Date(entry.date).toLocaleDateString();
+                const type = entry.type === 'income' ? 'Gelir' : 'Gider';
+                const amount = entry.type === 'income' ? '+' + entry.amount : '-' + entry.amount;
+                if (entry.type === 'income') totalIncome += parseFloat(entry.amount);
+                else totalExpense += parseFloat(entry.amount);
+                row.innerHTML = `
+                    <td>${date}</td>
+                    <td>${entry.description}</td>
+                    <td>${type}</td>
+                    <td>${amount} TL</td>
+                    <td><button onclick="deleteEntry(${index})">Sil</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+            document.getElementById('totalIncome').textContent = totalIncome + ' TL';
+            document.getElementById('totalExpense').textContent = totalExpense + ' TL';
+            document.getElementById('netProfit').textContent = (totalIncome - totalExpense) + ' TL';
+        }
+
+        function addEntry() {
+            const description = prompt('Açıklama:');
+            const amount = prompt('Tutar:');
+            const type = prompt('Tür (income/gider):');
+            if (description && amount && type) {
+                accountingEntries.push({
+                    description: description,
+                    amount: parseFloat(amount),
+                    type: type,
+                    date: new Date().toISOString()
+                });
+                localStorage.setItem('accountingEntries', JSON.stringify(accountingEntries));
+                loadAccounting();
+            }
+        }
+
+        function deleteEntry(index) {
+            if (confirm('Silmek istediğinizden emin misiniz?')) {
+                accountingEntries.splice(index, 1);
+                localStorage.setItem('accountingEntries', JSON.stringify(accountingEntries));
+                loadAccounting();
+            }
+        }
+
+        loadAccounting();
+    </script>
+</body>
+</html>

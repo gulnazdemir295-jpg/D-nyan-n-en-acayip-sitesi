@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Paneli - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 5px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Admin Paneli</i></h1>
+    <p>Tüm süreçleri buradan yönetin.</p>
+
+    <div class="section">
+        <h2>Yönetim ve Raporlama</h2>
+        <a href="kullanici-yonetimi.html" class="button">Kullanıcı Yönetimi</a>
+        <a href="gumruk-danismanlari-yonetimi.html" class="button">Gümrük Danışmanları Yönetimi</a>
+        <a href="canli-yayin-yonetimi.html" class="button">Canlı Yayın Yönetimi</a>
+        <a href="toplantilari-listele.html" class="button">Toplantıları Listele</a>
+        <a href="mesajlar.html?panel=admin" class="button">Mesajlar</a>
+        <a href="odeme-yonetimi.html" class="button">Ödeme Yönetimi</a>
+        <a href="basvuru-inceleme.html" class="button">Başvuru İnceleme</a>
+        <a href="raporlar.html" class="button">Raporlar</a>
+        <a href="hareket-takip.html" class="button">Hareket Takip</a>
+        <a href="insan-kaynaklari-panel.html" class="button">İnsan Kaynakları</a>
+        <a href="muhasebe-panel.html" class="button">Muhasebe</a>
+        <a href="uluslararasi-ticaret.html" class="button">Uluslararası Ticaret</a>
+        <a href="bolgesel-urun-takip.html" class="button">Bölgesel Ürün Takip</a>
+        <a href="uluslararasi-siparis-takibi-admin.html" class="button">Uluslararası Sipariş Takibi</a>
+        <a href="uluslararasi-canli-izle.html" class="button">Uluslararası Canlı Yayın İzle</a>
+    </div>
+
+    <div class="section">
+        <h2>Finansal Yönetim</h2>
+        <a href="muhasebe.html" class="button">Muhasebe</a>
+        <a href="komisyon-yonetimi.html" class="button">Komisyon Yönetimi</a>
+        <a href="net-kazanc.html" class="button">Net Kazanç</a>
+        <a href="bankalar.html" class="button">Bankalar</a>
+        <a href="kargo-odemeleri.html" class="button">Kargo Firma Ödemeleri</a>
+        <a href="gelir-gider.html" class="button">Gelir ve Gider Takibi</a>
+        <a href="fatura-yonetimi.html" class="button">Fatura Yönetimi</a>
+        <a href="fatura-olustur.html" class="button">Fatura Oluştur</a>
+    </div>
+
+    <div class="section">
+        <h2>Lojistik ve Operasyon</h2>
+        <a href="siparisler.html" class="button">Siparişler</a>
+        <a href="urun-yonetimi.html" class="button">Ürün Yönetimi</a>
+        <a href="stok-takip.html" class="button">Stok Takip</a>
+        <a href="teslimat-takip.html" class="button">Teslimat Takip</a>
+        <a href="musteri-sikayetleri.html" class="button">Müşteri Şikayetleri</a>
+    </div>
+
+    <div class="section">
+        <h2>Panel Erişimi</h2>
+        <a href="hammadeciler-panel.html" class="button">Hammadeciler Paneli</a>
+        <a href="ureticiler-panel.html" class="button">Üreticiler Paneli</a>
+        <a href="toptancilar-panel.html" class="button">Toptancılar Paneli</a>
+        <a href="saticilar-panel.html" class="button">Satıcılar Paneli</a>
+        <a href="yoresel-lezzetler-panel.html" class="button" onclick="directLogin('yoresel-lezzetler')">Yöresel Lezzetler Paneli</a>
+        <a href="el-sanatlari-panel.html" class="button" onclick="directLogin('el-sanatlari')">El Sanatları Paneli</a>
+        <a href="dukkan-pos.html" class="button">POS Takip</a>
+        <a href="satis-gecmisi.html" class="button">Satış Raporları</a>
+        <a href="musteriler-panel.html" class="button">Müşteriler Paneli</a>
+        <a href="musteri-hizmetleri-panel.html" class="button">Müşteri Hizmetleri Paneli</a>
+    </div>
+
+    <div class="section">
+        <h2>Test İşlemleri</h2>
+        <button class="button" onclick="addTestApplications()">Test Başvuruları Ekle</button>
+        <a href="siparisler.html" class="button">Siparişler</a>
+    </div>
+
+    <a href="index.html" class="button">Ana Sayfa</a>
+
+    <script>
+        function addTestApplications() {
+            const panels = ['hammadeciler', 'ureticiler', 'toptancilar', 'saticilar'];
+            const applications = JSON.parse(localStorage.getItem('pending-applications')) || [];
+            panels.forEach(panel => {
+                const app = {
+                    panel: panel,
+                    name: `Test ${panel}`,
+                    email: `test@${panel}.com`,
+                    phone: '1234567890',
+                    company: `Test ${panel} Şirketi`,
+                    taxNumber: '1234567890',
+                    address: 'Test Adresi',
+                    idCopy: '',
+                    taxCertificate: '',
+                    signatureCircular: '',
+                    status: 'pending',
+                    submittedAt: new Date().toISOString()
+                };
+                applications.push(app);
+            });
+            localStorage.setItem('pending-applications', JSON.stringify(applications));
+            alert('Test başvuruları eklendi.');
+        }
+
+        function directLogin(panel) {
+            const testUser = {
+                name: `Admin Test ${panel}`,
+                email: `admin@${panel}.com`,
+                panel: panel,
+                company: `Test ${panel} Şirketi`
+            };
+            localStorage.setItem('currentUser', JSON.stringify(testUser));
+            // Redirect to the panel
+            window.location.href = `${panel}-panel.html`;
+        }
+    </script>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fatura Oluştur - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            background-color: #ffffff;
+            color: #000000;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 5px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        input, textarea {
+            padding: 10px;
+            margin: 10px;
+            width: 300px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #000000;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Fatura Oluştur</i></h1>
+    <p>Admin kazançlarınızı faturalandırın.</p>
+
+    <div class="section">
+        <h2>Fatura Oluşturma Formu</h2>
+        <form id="invoiceForm">
+            <label for="amount">Fatura Tutarı (Admin Bakiyesi: <span id="currentBalance">0</span> TL):</label><br>
+            <input type="number" id="amount" required><br>
+            <label for="description">Açıklama:</label><br>
+            <textarea id="description" rows="3" placeholder="Fatura açıklaması..."></textarea><br>
+            <button type="submit" class="button">Fatura Oluştur</button>
+        </form>
+    </div>
+
+    <div class="section">
+        <h2>Oluşturulan Faturalar</h2>
+        <table id="invoicesTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tarih</th>
+                    <th>Tutar</th>
+                    <th>Açıklama</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Invoices will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <a href="admin-panel.html" class="button">Admin Paneli</a>
+    <a href="index.html" class="button">Ana Sayfa</a>
+
+    <script>
+        function loadCurrentBalance() {
+            const adminBalance = parseFloat(localStorage.getItem('adminBalance')) || 0;
+            document.getElementById('currentBalance').textContent = adminBalance;
+        }
+
+        function loadInvoices() {
+            const invoices = JSON.parse(localStorage.getItem('adminInvoices')) || [];
+            const tbody = document.querySelector('#invoicesTable tbody');
+            tbody.innerHTML = '';
+            invoices.forEach(invoice => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${invoice.id}</td>
+                    <td>${new Date(invoice.date).toLocaleDateString('tr-TR')}</td>
+                    <td>${invoice.amount} TL</td>
+                    <td>${invoice.description}</td>
+                    <td>${invoice.status}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        document.getElementById('invoiceForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const amount = parseFloat(document.getElementById('amount').value);
+            const description = document.getElementById('description').value;
+            const adminBalance = parseFloat(localStorage.getItem('adminBalance')) || 0;
+
+            if (amount > adminBalance) {
+                alert('Yetersiz bakiye!');
+                return;
+            }
+
+            const invoices = JSON.parse(localStorage.getItem('adminInvoices')) || [];
+            const newInvoice = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                amount: amount,
+                description: description,
+                status: 'pending'
+            };
+            invoices.push(newInvoice);
+            localStorage.setItem('adminInvoices', JSON.stringify(invoices));
+
+            // Deduct from admin balance
+            const newBalance = adminBalance - amount;
+            localStorage.setItem('adminBalance', newBalance);
+
+            alert('Fatura oluşturuldu!');
+            this.reset();
+            loadCurrentBalance();
+            loadInvoices();
+        });
+
+        loadCurrentBalance();
+        loadInvoices();
+    </script>
+</body>
+</html>

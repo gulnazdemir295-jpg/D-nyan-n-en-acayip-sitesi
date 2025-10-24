@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canlı İzle - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: -250px;
+            background-color: #ffffff;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+        }
+        .sidebar a {
+            padding: 8px 8px 8px 32px;
+            text-decoration: none;
+            font-size: 25px;
+            color: #ff0000;
+            display: block;
+            cursor: pointer;
+        }
+        .sidebar a:hover {
+            color: #cc0000;
+        }
+        .sidebar .closebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+        }
+        .openbtn {
+            font-size: 20px;
+            cursor: pointer;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 15px;
+            border: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+        }
+        .openbtn:hover {
+            background-color: #cc0000;
+        }
+        .main {
+            transition: margin-left .5s;
+            padding: 16px;
+            margin-left: 0;
+        }
+        .content {
+            display: none;
+            margin-top: 50px;
+        }
+        .content ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .content li {
+            background-color: #ffcccc;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .back-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .back-link:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <button class="openbtn" onclick="openNav()">☰ Menü Aç</button>
+    <a href="index.html" class="back-link">Ana Sayfa</a>
+
+    <div id="mySidebar" class="sidebar">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+        <a onclick="showContent('kategoriler')">Kategoriler</a>
+        <a onclick="showContent('canli')">Canlı Yayın Kategorisi</a>
+    </div>
+
+    <div id="main" class="main">
+        <h1>Canlı İzle Sayfası</h1>
+        <p>Menüden bir seçenek seçin.</p>
+        <div id="kategoriler" class="content">
+            <h2>Normal Ürün Kategorileri</h2>
+            <ul>
+                <li>Elektronik</li>
+                <li>Giyim</li>
+                <li>Yiyecek</li>
+                <li>Ev Eşyaları</li>
+                <li>Spor</li>
+            </ul>
+        </div>
+        <div id="canli" class="content">
+            <h2>Canlı Yayında Olan Kategoriler</h2>
+            <ul>
+                <li>Canlı Elektronik</li>
+                <li>Canlı Giyim</li>
+                <li>Canlı Yiyecek</li>
+                <li>Canlı Ev Eşyaları</li>
+                <li>Canlı Spor</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function openNav() {
+            document.getElementById("mySidebar").style.left = "0";
+            document.getElementById("main").style.marginLeft = "250px";
+        }
+
+        function closeNav() {
+            document.getElementById("mySidebar").style.left = "-250px";
+            document.getElementById("main").style.marginLeft = "0";
+        }
+
+        function showContent(id) {
+            var contents = document.getElementsByClassName('content');
+            for (var i = 0; i < contents.length; i++) {
+                contents[i].style.display = 'none';
+            }
+            document.getElementById(id).style.display = 'block';
+            closeNav();
+        }
+    </script>
+</body>
+</html>

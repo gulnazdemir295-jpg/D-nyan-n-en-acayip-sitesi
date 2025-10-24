@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muhasebe Paneli - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            float: left;
+            width: 200px;
+            padding: 20px;
+            background-color: #ffffff;
+            color: #000000;
+            border-right: 1px solid #ff0000;
+            height: 100vh;
+        }
+        .sidebar h3 {
+            color: #ff0000;
+        }
+        .sidebar .button {
+            display: block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px;
+            margin: 10px 0;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .sidebar .button:hover {
+            background-color: #cc0000;
+        }
+        .main {
+            margin-left: 240px;
+            padding: 50px;
+            text-align: center;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            background-color: #ffffff;
+            color: #000000;
+            text-align: left;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #000000;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+        input, select, textarea {
+            padding: 10px;
+            margin: 10px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>Muhasebe</h3>
+        <a href="#income-expense" class="button">Gelir-Gider Takibi</a>
+        <a href="#invoices" class="button">Fatura Yönetimi</a>
+        <a href="#tax" class="button">Vergi Hesaplama</a>
+        <a href="#reports" class="button">Finansal Raporlar</a>
+    </div>
+    <div class="main">
+        <h1><i>Muhasebe Paneli</i></h1>
+        <p>Muhasebe işlemlerinizi buradan yönetin.</p>
+
+        <div id="income-expense" class="section">
+            <h2>Gelir-Gider Takibi</h2>
+            <button class="button" onclick="showAddEntryForm()">Yeni Giriş Ekle</button>
+            <div id="addEntryForm" style="display: none;">
+                <h3>Yeni Giriş Ekle</h3>
+                <select id="entryType">
+                    <option value="income">Gelir</option>
+                    <option value="expense">Gider</option>
+                </select><br>
+                <input type="number" id="entryAmount" placeholder="Tutar"><br>
+                <input type="text" id="entryDescription" placeholder="Açıklama"><br>
+                <button class="button" onclick="addEntry()">Ekle</button>
+            </div>
+            <table id="entriesTable">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Tür</th>
+                        <th>Tutar</th>
+                        <th>Açıklama</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Entries will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="invoices" class="section">
+            <h2>Fatura Yönetimi</h2>
+            <table id="invoicesTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tarih</th>
+                        <th>Tutar</th>
+                        <th>Açıklama</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Invoices will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div id="tax" class="section">
+            <h2>Vergi Hesaplama</h2>
+            <p>Toplam Gelir: <span id="totalIncome">0</span> TL</p>
+            <p>Hesaplanan Vergi (20%): <span id="calculatedTax">0</span> TL</p>
+            <button class="button" onclick="calculateTax()">Hesapla</button>
+        </div>
+
+        <div id="reports" class="section">
+            <h2>Finansal Raporlar</h2>
+            <p>Net Kazanç: <span id="netProfit">0</span> TL</p>
+            <button class="button" onclick="generateReport()">Rapor Oluştur</button>
+        </div>
+
+        <a href="admin-panel.html" class="button">Admin Paneli</a>
+        <a href="index.html" class="button">Ana Sayfa</a>
+    </div>
+
+    <script>
+        function showAddEntryForm() {
+            document.getElementById('addEntryForm').style.display = 'block';
+        }
+
+        function addEntry() {
+            const type = document.getElementById('entryType').value;
+            const amount = document.getElementById('entryAmount').value;
+            const description = document.getElementById('entryDescription').value;
+            if (amount && description) {
+                const entries = JSON.parse(localStorage.getItem('accountingEntries')) || [];
+                entries.push({ type, amount: parseFloat(amount), description, date: new Date().toISOString() });
+                localStorage.setItem('accountingEntries', JSON.stringify(entries));
+                loadEntries();
+                document.getElementById('addEntryForm').style.display = 'none';
+                document.getElementById('entryAmount').value = '';
+                document.getElementById('entryDescription').value = '';
+            }
+        }
+
+        function loadEntries() {
+            const entries = JSON.parse(localStorage.getItem('accountingEntries')) || [];
+            const tbody = document.querySelector('#entriesTable tbody');
+            tbody.innerHTML = '';
+            entries.forEach(entry => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date(entry.date).toLocaleDateString('tr-TR')}</td>
+                    <td>${entry.type === 'income' ? 'Gelir' : 'Gider'}</td>
+                    <td>${entry.amount} TL</td>
+                    <td>${entry.description}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function loadInvoices() {
+            const invoices = JSON.parse(localStorage.getItem('adminInvoices')) || [];
+            const tbody = document.querySelector('#invoicesTable tbody');
+            tbody.innerHTML = '';
+            invoices.forEach(invoice => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${invoice.id}</td>
+                    <td>${new Date(invoice.date).toLocaleDateString('tr-TR')}</td>
+                    <td>${invoice.amount} TL</td>
+                    <td>${invoice.description}</td>
+                    <td>${invoice.status}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function calculateTax() {
+            const entries = JSON.parse(localStorage.getItem('accountingEntries')) || [];
+            let totalIncome = 0;
+            entries.forEach(entry => {
+                if (entry.type === 'income') totalIncome += entry.amount;
+            });
+            const tax = totalIncome * 0.2;
+            document.getElementById('totalIncome').textContent = totalIncome;
+            document.getElementById('calculatedTax').textContent = tax;
+        }
+
+        function generateReport() {
+            const adminBalance = parseFloat(localStorage.getItem('adminBalance')) || 0;
+            document.getElementById('netProfit').textContent = adminBalance;
+        }
+
+        loadEntries();
+        loadInvoices();
+    </script>
+</body>
+</html>

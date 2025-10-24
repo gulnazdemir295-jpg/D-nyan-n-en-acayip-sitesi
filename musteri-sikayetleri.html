@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Müşteri Şikayetleri - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 5px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ff0000;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Müşteri Şikayetleri</i></h1>
+    <p>Müşteri şikayetlerini yönetin.</p>
+
+    <table id="complaintTable">
+        <thead>
+            <tr>
+                <th>Müşteri</th>
+                <th>Şikayet</th>
+                <th>Tarih</th>
+                <th>Durum</th>
+                <th>İşlem</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Complaints will be populated here -->
+        </tbody>
+    </table>
+
+    <button class="button" onclick="addComplaint()">Yeni Şikayet Ekle</button>
+    <a href="admin-panel.html" class="button">Admin Paneli</a>
+
+    <script>
+        let complaints = JSON.parse(localStorage.getItem('complaints')) || [
+            { customer: 'Müşteri A', complaint: 'Ürün bozuk', date: '2023-10-01', status: 'Çözüldü' },
+            { customer: 'Müşteri B', complaint: 'Geç teslimat', date: '2023-10-02', status: 'Devam Ediyor' }
+        ];
+
+        function loadComplaints() {
+            const tbody = document.querySelector('#complaintTable tbody');
+            tbody.innerHTML = '';
+            complaints.forEach((complaint, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${complaint.customer}</td>
+                    <td>${complaint.complaint}</td>
+                    <td>${complaint.date}</td>
+                    <td>${complaint.status}</td>
+                    <td><button onclick="updateStatus(${index})">Durum Güncelle</button></td>
+                `;
+                tbody.appendChild(row);
+            });
+            localStorage.setItem('complaints', JSON.stringify(complaints));
+        }
+
+        function addComplaint() {
+            const customer = prompt('Müşteri:');
+            const complaint = prompt('Şikayet:');
+            if (customer && complaint) {
+                complaints.push({
+                    customer: customer,
+                    complaint: complaint,
+                    date: new Date().toISOString().split('T')[0],
+                    status: 'Yeni'
+                });
+                loadComplaints();
+            }
+        }
+
+        function updateStatus(index) {
+            const newStatus = prompt('Yeni Durum:');
+            if (newStatus) {
+                complaints[index].status = newStatus;
+                loadComplaints();
+            }
+        }
+
+        loadComplaints();
+    </script>
+</body>
+</html>

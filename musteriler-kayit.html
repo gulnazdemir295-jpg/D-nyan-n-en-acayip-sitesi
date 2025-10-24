@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Müşteri Kaydı - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        form {
+            display: inline-block;
+            text-align: left;
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Müşteri Kaydı</i></h1>
+    <p>Alışveriş yapmak için kayıt olun.</p>
+    <form id="customerRegistrationForm">
+        <label>Ad Soyad: <input type="text" id="name" required></label>
+        <label>E-posta: <input type="email" id="email" required></label>
+        <label>Telefon: <input type="tel" id="phone" required></label>
+        <label>Şifre: <input type="password" id="password" required></label>
+        <label>Şifre Tekrar: <input type="password" id="confirmPassword" required></label>
+        <label>Şehir: <input type="text" id="city" required></label>
+        <label>İlçe: <input type="text" id="district" required></label>
+        <label>Bölge: <input type="text" id="region" required></label>
+        <button type="submit" class="button">Kayıt Ol</button>
+    </form>
+    <a href="index.html" class="button">Ana Sayfa</a>
+
+    <script>
+        document.getElementById('customerRegistrationForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const city = document.getElementById('city').value;
+            const district = document.getElementById('district').value;
+            const region = document.getElementById('region').value;
+
+            if (password !== confirmPassword) {
+                alert('Şifreler eşleşmiyor.');
+                return;
+            }
+
+            const customer = {
+                name: name,
+                email: email,
+                phone: phone,
+                password: password,
+                city: city,
+                district: district,
+                region: region
+            };
+
+            const customers = JSON.parse(localStorage.getItem('customers')) || [];
+            customers.push(customer);
+            localStorage.setItem('customers', JSON.stringify(customers));
+            alert('Kayıt başarılı! Giriş yapabilirsiniz.');
+            document.getElementById('customerRegistrationForm').reset();
+        });
+    </script>
+</body>
+</html>

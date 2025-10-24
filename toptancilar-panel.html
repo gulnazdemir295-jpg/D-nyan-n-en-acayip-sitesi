@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toptancılar Paneli - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            float: left;
+            width: 200px;
+            padding: 20px;
+            background-color: #ffffff;
+            color: #000000;
+            border-right: 1px solid #ff0000;
+            height: 100vh;
+        }
+        .sidebar h3 {
+            color: #ff0000;
+        }
+        .sidebar .button {
+            display: block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px;
+            margin: 10px 0;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .sidebar .button:hover {
+            background-color: #cc0000;
+        }
+        .main {
+            margin-left: 240px;
+            padding: 50px;
+            text-align: center;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>Hoşgeldiniz</h3>
+        <p>Firma Adı: Toptan Firma</p>
+        <img src="logo.png" alt="Logo" style="width: 100px; height: auto;">
+        <a href="urun-yonetimi.html?panel=toptancilar" class="button">Ürün Yönetimi</a>
+        <a href="urun-alis.html?panel=toptancilar&supplier=ureticiler" class="button">Üreticilerden Al</a>
+        <a href="urun-satis.html?panel=toptancilar&customer=saticilar" class="button">Satıcılara Sat</a>
+        <a href="kampanya-yap.html?panel=toptancilar" class="button">Kampanya Yap</a>
+        <a href="canli-yayin-yap.html" class="button">Canlı Sat</a>
+        <a href="toplantiyi-baslat.html" class="button">Toplantı Yap</a>
+        <a href="dukkan-pos.html" class="button">Dükkan POS</a>
+        <a href="mesajlar.html?panel=toptancilar" class="button">Gelen Kutusu</a>
+        <a href="#" class="button">Kampanyalı Ürünlerim</a>
+        <a href="#" class="button">Sepetteki Ürünleri Sil</a>
+        <a href="siparislerim.html?panel=toptancilar" class="button">Siparişlerim</a>
+        <a href="gumruk-danismani-sepeti.html?panel=toptancilar" class="button">Gümrük Danışmanı Sepeti</a>
+        <a href="uluslararasi-toptanci-satis.html" class="button">Uluslararası Satış</a>
+        <a href="uluslararasi-canli-yayin-yap.html" class="button">Uluslararası Canlı Yayın Yap</a>
+        <a href="uluslararasi-canli-izle.html" class="button">Uluslararası Canlı Yayın İzle</a>
+        <a href="uluslararasi-siparis-takibi-toptanci.html" class="button">Uluslararası Sipariş Takibi</a>
+    </div>
+    <div class="main">
+        <h1><i>Toptancılar Paneli</i></h1>
+        <p>Toptan satış işlemlerinizi buradan yönetin.</p>
+
+        <div style="margin: 20px 0;">
+            <a href="urun-ekle.html?panel=toptancilar" class="button">Ürün Ekle</a>
+        </div>
+
+        <div style="margin: 20px 0; padding: 20px; border: 1px solid #ff0000; border-radius: 5px;">
+            <h2>Numune Anlaşması Öner</h2>
+            <form id="sampleAgreementForm">
+                <label>Satıcı Seç: <select id="sellerSelect" required>
+                    <option value="">Seçin</option>
+                </select></label><br>
+                <label>Numune Ürün Seç: <select id="sampleProductSelect" required>
+                    <option value="">Seçin</option>
+                </select></label><br>
+                <label>Komisyon Oranı (%): <input type="number" step="0.01" id="agreementCommissionRate" min="0" max="100" required></label><br>
+                <button type="submit" class="button">Öneri Gönder</button>
+            </form>
+        </div>
+
+        <div style="margin: 20px 0; padding: 20px; border: 1px solid #ff0000; border-radius: 5px;">
+            <h2>Üreticilerden Satın Al</h2>
+            <form id="searchForm">
+                <label>Ürün Adı: <input type="text" id="productNameFilter" placeholder="Ürün adı girin"></label><br>
+                <label>Şirket Adı: <input type="text" id="companyFilter" placeholder="Şirket adı girin"></label><br>
+                <label>Şehir: <input type="text" id="cityFilter" placeholder="Şehir girin"></label><br>
+                <label>İlçe: <input type="text" id="districtFilter" placeholder="İlçe girin"></label><br>
+                <label>Bölge: <input type="text" id="regionFilter" placeholder="Bölge girin"></label><br>
+                <button type="button" class="button" onclick="searchProducts()">Ara</button>
+            </form>
+            <div id="productList" style="margin-top: 20px;">
+                <!-- Products will be listed here -->
+            </div>
+        </div>
+
+        <div style="margin: 20px 0; padding: 20px; border: 1px solid #ff0000; border-radius: 5px;">
+            <h2>Üreticileri Görüntüle</h2>
+            <div id="sellersList" style="margin-top: 20px;">
+                <!-- Sellers will be listed here -->
+            </div>
+        </div>
+
+        <a href="index.html" class="button">Ana Sayfa</a>
+
+
+    </div>
+
+    <script>
+        let allProducts = [];
+
+        function loadAllProducts() {
+            const panels = ['ureticiler']; // Buy from ureticiler
+            allProducts = [];
+            panels.forEach(panel => {
+                const products = JSON.parse(localStorage.getItem('products-' + panel)) || [];
+                allProducts = allProducts.concat(products.map(p => ({ ...p, sellerPanel: panel })));
+            });
+        }
+
+        function searchProducts() {
+            const productName = document.getElementById('productNameFilter').value.toLowerCase();
+            const company = document.getElementById('companyFilter').value.toLowerCase();
+            const city = document.getElementById('cityFilter').value.toLowerCase();
+            const district = document.getElementById('districtFilter').value.toLowerCase();
+            const region = document.getElementById('regionFilter').value.toLowerCase();
+
+            const filtered = allProducts.filter(p =>
+                (!productName || p.name.toLowerCase().includes(productName)) &&
+                (!company || (p.company && p.company.toLowerCase().includes(company))) &&
+                (!city || (p.city && p.city.toLowerCase().includes(city))) &&
+                (!district || (p.district && p.district.toLowerCase().includes(district))) &&
+                (!region || (p.region && p.region.toLowerCase().includes(region)))
+            );
+
+            displayProducts(filtered);
+        }
+
+        function displayProducts(products) {
+            const productList = document.getElementById('productList');
+            productList.innerHTML = '';
+            if (products.length === 0) {
+                productList.innerHTML = '<p>Hiç ürün bulunamadı.</p>';
+                return;
+            }
+            products.forEach(product => {
+                const item = document.createElement('div');
+                item.style.border = '1px solid #ff0000';
+                item.style.padding = '10px';
+                item.style.margin = '10px 0';
+                item.style.backgroundColor = '#ffffff';
+                item.style.color = '#000000';
+                item.style.borderRadius = '5px';
+                item.innerHTML = `
+                    <h3>${product.name}</h3>
+                    <p>Fiyat: ${product.price} TL</p>
+                    <p>Şirket: ${product.company || 'Bilinmiyor'}</p>
+                    <p>Şehir: ${product.city || 'Bilinmiyor'}</p>
+                    <p>İlçe: ${product.district || 'Bilinmiyor'}</p>
+                    <p>Bölge: ${product.region || 'Bilinmiyor'}</p>
+                    <label>Miktar: <input type="number" min="1" value="1" id="qty-${product.name}"></label>
+                    <button class="button" onclick="buyProduct('${product.name}', '${product.sellerPanel}')">Satın Al</button>
+                `;
+                productList.appendChild(item);
+            });
+        }
+
+        function buyProduct(productName, sellerPanel) {
+            const quantity = document.getElementById(`qty-${productName}`).value;
+            const order = {
+                buyerPanel: 'toptancilar',
+                sellerPanel: sellerPanel,
+                product: productName,
+                quantity: quantity,
+                date: new Date().toISOString()
+            };
+            const orders = JSON.parse(localStorage.getItem('orders')) || [];
+            orders.push(order);
+            localStorage.setItem('orders', JSON.stringify(orders));
+            alert('Satın alma işlemi gerçekleştirildi.');
+        }
+
+        // Sample Agreement functionality
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const users = JSON.parse(localStorage.getItem('users')) || [];
+        const sellers = users.filter(u => u.panel === 'saticilar');
+        const sellerSelect = document.getElementById('sellerSelect');
+        sellers.forEach(seller => {
+            const option = document.createElement('option');
+            option.value = seller.email;
+            option.textContent = seller.company || seller.name;
+            sellerSelect.appendChild(option);
+        });
+
+        const ownProducts = JSON.parse(localStorage.getItem('products-toptancilar')) || [];
+        const sampleProducts = ownProducts.filter(p => p.isSample);
+        const sampleProductSelect = document.getElementById('sampleProductSelect');
+        sampleProducts.forEach(product => {
+            const option = document.createElement('option');
+            option.value = product.name;
+            option.textContent = product.name + ' (' + product.commissionRate + '%)';
+            sampleProductSelect.appendChild(option);
+        });
+
+        document.getElementById('sampleAgreementForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const seller = document.getElementById('sellerSelect').value;
+            const product = document.getElementById('sampleProductSelect').value;
+            const commissionRate = parseFloat(document.getElementById('agreementCommissionRate').value);
+            if (seller && product && commissionRate) {
+                const agreement = {
+                    supplier: currentUser.email,
+                    seller: seller,
+                    product: product,
+                    commissionRate: commissionRate,
+                    status: 'pending',
+                    date: new Date().toISOString()
+                };
+                const agreements = JSON.parse(localStorage.getItem('sampleAgreements')) || [];
+                agreements.push(agreement);
+                localStorage.setItem('sampleAgreements', JSON.stringify(agreements));
+                alert('Numune anlaşması önerisi gönderildi.');
+                this.reset();
+            } else {
+                alert('Lütfen tüm alanları doldurun.');
+            }
+        });
+
+        loadAllProducts();
+        searchProducts(); // Initial display
+        loadSellers(); // Load sellers
+
+        function loadSellers() {
+            const approvedUsers = JSON.parse(localStorage.getItem('approved-users')) || [];
+            const sellers = approvedUsers.filter(u => u.panel === 'ureticiler');
+            const sellersList = document.getElementById('sellersList');
+            sellersList.innerHTML = '';
+            if (sellers.length === 0) {
+                sellersList.innerHTML = '<p>Henüz üretici yok.</p>';
+                return;
+            }
+            sellers.forEach(seller => {
+                const card = document.createElement('div');
+                card.style.border = '1px solid #ff0000';
+                card.style.padding = '10px';
+                card.style.margin = '10px 0';
+                card.style.backgroundColor = '#ffffff';
+                card.style.color = '#000000';
+                card.style.borderRadius = '5px';
+                card.innerHTML = `
+                    <h3>${seller.company || seller.name}</h3>
+                    <p>Şehir: ${seller.city || 'Belirtilmemiş'}</p>
+                    <p>Bölge: ${seller.region || 'Belirtilmemiş'}</p>
+                    <button class="button" onclick="viewSellerPage('${seller.email}')">Sayfasını Görüntüle</button>
+                `;
+                sellersList.appendChild(card);
+            });
+        }
+
+        function viewSellerPage(sellerEmail) {
+            window.location.href = 'uretici-sayfasi.html?seller=' + encodeURIComponent(sellerEmail);
+        }
+
+        function editProduct(product) {
+            alert(product + ' düzenleniyor.');
+        }
+        function deleteProduct(product) {
+            alert(product + ' siliniyor.');
+        }
+        function liveBroadcast(product) {
+            alert(product + ' için canlı yayın açılıyor.');
+        }
+        function updateStatus(orderId, newStatus) {
+            document.getElementById('status-' + orderId).innerText = newStatus;
+            alert('Sipariş ' + orderId + ' durumu güncellendi: ' + newStatus);
+        }
+    </script>
+</body>
+</html>

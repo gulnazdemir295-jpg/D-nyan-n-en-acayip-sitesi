@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stok Takip - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 5px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ff0000;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Stok Takip</i></h1>
+    <p>Ürün stoklarını takip edin.</p>
+
+    <table id="stockTable">
+        <thead>
+            <tr>
+                <th>Ürün</th>
+                <th>Stok Miktarı</th>
+                <th>Minimum Stok</th>
+                <th>Durum</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Stock will be populated here -->
+        </tbody>
+    </table>
+
+    <button class="button" onclick="updateStock()">Stok Güncelle</button>
+    <a href="admin-panel.html" class="button">Admin Paneli</a>
+
+    <script>
+        let stock = JSON.parse(localStorage.getItem('stock')) || [
+            { product: 'Ürün A', quantity: 50, min: 10 },
+            { product: 'Ürün B', quantity: 5, min: 20 }
+        ];
+
+        function loadStock() {
+            const tbody = document.querySelector('#stockTable tbody');
+            tbody.innerHTML = '';
+            stock.forEach(item => {
+                const status = item.quantity <= item.min ? 'Düşük Stok' : 'Yeterli';
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.product}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.min}</td>
+                    <td>${status}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            localStorage.setItem('stock', JSON.stringify(stock));
+        }
+
+        function updateStock() {
+            const product = prompt('Ürün:');
+            const quantity = prompt('Yeni Stok:');
+            if (product && quantity) {
+                const item = stock.find(s => s.product === product);
+                if (item) {
+                    item.quantity = parseInt(quantity);
+                    loadStock();
+                }
+            }
+        }
+
+        loadStock();
+    </script>
+</body>
+</html>

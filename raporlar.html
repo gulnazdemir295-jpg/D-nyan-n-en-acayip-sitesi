@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raporlar - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            font-style: italic;
+            text-align: center;
+        }
+        .report-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+        }
+        h2 {
+            color: #ff0000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 8px;
+            border: 1px solid #ffffff;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 10px 0;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Firma Raporları</i></h1>
+
+    <div class="report-section">
+        <h2>Hammadeciler</h2>
+        <p><strong>Kampanyalar:</strong> Yok</p>
+        <p><strong>Satış Miktarı:</strong> 0</p>
+        <p><strong>Canlı Yayın Satışı:</strong> 0</p>
+        <h3>Ürün Listesi</h3>
+        <table id="hammadeciler-table">
+            <thead>
+                <tr>
+                    <th>Ürün Adı</th>
+                    <th>Barkod</th>
+                    <th>Stok</th>
+                    <th>Fiyat</th>
+                    <th>Kategori</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="report-section">
+        <h2>Üreticiler</h2>
+        <p><strong>Kampanyalar:</strong> Yok</p>
+        <p><strong>Satış Miktarı:</strong> 0</p>
+        <p><strong>Canlı Yayın Satışı:</strong> 0</p>
+        <h3>Ürün Listesi</h3>
+        <table id="ureticiler-table">
+            <thead>
+                <tr>
+                    <th>Ürün Adı</th>
+                    <th>Barkod</th>
+                    <th>Stok</th>
+                    <th>Fiyat</th>
+                    <th>Kategori</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="report-section">
+        <h2>Toptancılar</h2>
+        <p><strong>Kampanyalar:</strong> Yok</p>
+        <p><strong>Satış Miktarı:</strong> 0</p>
+        <p><strong>Canlı Yayın Satışı:</strong> 0</p>
+        <h3>Ürün Listesi</h3>
+        <table id="toptancilar-table">
+            <thead>
+                <tr>
+                    <th>Ürün Adı</th>
+                    <th>Barkod</th>
+                    <th>Stok</th>
+                    <th>Fiyat</th>
+                    <th>Kategori</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="report-section">
+        <h2>Satıcılar</h2>
+        <p><strong>Kampanyalar:</strong> Yok</p>
+        <p><strong>Satış Miktarı:</strong> 0</p>
+        <p><strong>Canlı Yayın Satışı:</strong> 0</p>
+        <h3>Ürün Listesi</h3>
+        <table id="saticilar-table">
+            <thead>
+                <tr>
+                    <th>Ürün Adı</th>
+                    <th>Barkod</th>
+                    <th>Stok</th>
+                    <th>Fiyat</th>
+                    <th>Kategori</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <a href="admin-panel.html" class="button">Admin Paneli</a>
+    <a href="index.html" class="button">Ana Sayfa</a>
+
+    <script>
+        function loadReports() {
+            const panels = ['hammadeciler', 'ureticiler', 'toptancilar', 'saticilar'];
+            panels.forEach(panel => {
+                const key = 'products-' + panel;
+                const products = JSON.parse(localStorage.getItem(key)) || [];
+                const tbody = document.querySelector(`#${panel}-table tbody`);
+                tbody.innerHTML = '';
+                products.forEach(product => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${product.name}</td>
+                        <td>${product.barcode}</td>
+                        <td>${product.stock}</td>
+                        <td>${product.price}</td>
+                        <td>${product.category}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            });
+        }
+
+        window.onload = loadReports;
+    </script>
+</body>
+</html>

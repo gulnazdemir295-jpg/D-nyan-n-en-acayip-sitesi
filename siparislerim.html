@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Siparişlerim - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            text-align: left;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ffffff;
+        }
+        th {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+        .button {
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 5px 10px;
+            margin: 2px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Siparişlerim</i></h1>
+    <p>Zincir siparişlerinizi buradan yönetin.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Alıcı</th>
+                <th>Satıcı</th>
+                <th>Ürün</th>
+                <th>Miktar</th>
+                <th>Toplam Fiyat</th>
+                <th>Durum</th>
+                <th>Tarih</th>
+                <th>İşlemler</th>
+            </tr>
+        </thead>
+        <tbody id="chainOrdersBody">
+            <!-- Chain orders will be loaded here -->
+        </tbody>
+    </table>
+
+    <a href="index.html" class="button">Ana Sayfa</a>
+
+    <script>
+        function getPanel() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('panel') || 'general';
+        }
+
+        function loadChainOrders() {
+            const panel = getPanel();
+            const orders = JSON.parse(localStorage.getItem('chain-orders')) || [];
+            const tbody = document.getElementById('chainOrdersBody');
+            tbody.innerHTML = '';
+            orders.filter(order => order.buyer === panel || order.seller === panel).forEach((order, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${order.buyer}</td>
+                    <td>${order.seller}</td>
+                    <td>${order.product}</td>
+                    <td>${order.quantity}</td>
+                    <td>${order.totalPrice} TL</td>
+                    <td>${order.status}</td>
+                    <td>${new Date(order.date).toLocaleString('tr-TR')}</td>
+                    <td>
+                        ${order.status === 'approved' ? `
+                            <button onclick="updateStatus(${index}, 'shipped')" class="button">Kargoya Verildi</button>
+                            <button onclick="updateStatus(${index}, 'delivered')" class="button">Teslim Edildi</button>
+                            <button onclick="updateStatus(${index}, 'returned')" class="button">İade Edildi</button>
+                        ` : ''}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateStatus(index, newStatus) {
+            const orders = JSON.parse(localStorage.getItem('chain-orders')) || [];
+            orders[index].status = newStatus;
+            localStorage.setItem('chain-orders', JSON.stringify(orders));
+            loadChainOrders();
+            alert('Sipariş durumu güncellendi: ' + newStatus);
+        }
+
+        window.onload = loadChainOrders;
+    </script>
+</body>
+</html>

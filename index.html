@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #000000; /* Siyah arka plan */
+            color: #ffffff; /* Beyaz metin */
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            position: relative;
+        }
+        #logo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 100px;
+            height: 50px;
+            background-color: #ff0000; /* Kırmızı logo */
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #fff;
+            font-weight: bold;
+        }
+        h1 {
+            font-style: italic;
+            color: #ff0000; /* Kırmızı başlık */
+            margin-top: 60px;
+            font-size: 2.5em;
+        }
+        .button-container {
+            margin-top: 50px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000; /* Kırmızı buton */
+            color: #ffffff;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .button:hover {
+            background-color: #cc0000; /* Koyu kırmızı hover */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        footer {
+            margin-top: 100px;
+            padding: 20px;
+            background-color: #000000; /* Siyah footer */
+            color: #ffffff;
+            text-align: center;
+        }
+        footer a {
+            color: #ff0000;
+            text-decoration: none;
+            margin: 0 10px;
+            font-weight: 500;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+        form {
+            background-color: #333333;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: 20px auto;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #666;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: #555;
+            color: #ffffff;
+        }
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            .button {
+                padding: 12px 20px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Dünyanın <span style="color:white;">B</span>i <span style="color:white;">A</span>cayip <span style="color:white;">S</span>itesi</i></h1>
+    <div class="button-container">
+        <a href="hammadeciler-kayit.html" class="button">Hammadeciler Üye Ol</a>
+        <a href="ureticiler-kayit.html" class="button">Üreticiler Üye Ol</a>
+        <a href="toptancilar-kayit.html" class="button">Toptancılar Üye Ol</a>
+        <a href="saticilar-kayit.html" class="button">Satıcılar Üye Ol</a>
+        <a href="yoresel-lezzetler-kayit.html" class="button">Yöresel Lezzetler Üye Ol</a>
+        <a href="el-sanatlari-kayit.html" class="button">El Sanatları Üye Ol</a>
+        <a href="musteriler-kayit.html" class="button">Müşteri Ol</a>
+        <a href="hemen-kaydol.html" class="button">Hemen Kaydol</a>
+    </div>
+
+    <div class="button-container" style="margin-top: 50px;">
+        <h2>Hızlı Giriş</h2>
+        <form id="quickLoginForm">
+            <input type="text" id="loginIdentifier" placeholder="E-posta veya Telefon" required style="padding: 10px; margin: 5px;"><br>
+            <input type="password" id="loginPassword" placeholder="Şifre" required style="padding: 10px; margin: 5px;"><br>
+            <button type="submit" class="button">Giriş Yap</button>
+        </form>
+    </div>
+    <div class="button-container" style="margin-top: 20px;">
+        <a href="canli-izle.html" class="button">Şimdi Canlı İzle</a>
+        <a href="saticilar-panel.html" class="button">Hemen Canlı Yayında Sat</a>
+        <a href="tum-firma-haritasi.html" class="button">Türkiye Üretiyor Haritası</a>
+        <a href="urun-ara.html" class="button">Ürün Ara</a>
+        <a href="yoresel-lezzetler.html" class="button">Yöresel Lezzetler</a>
+        <a href="el-sanatlari.html" class="button">El Sanatları</a>
+    </div>
+
+    <div class="menu-container" style="margin-top: 50px; text-align: center;">
+        <h2>Satıcı Ürünlerine Erişim</h2>
+        <div class="menu-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 800px; margin: 0 auto;">
+            <a href="urun-ara.html?filter=kategori" class="button">Kategori Bazında</a>
+            <a href="canli-izle.html" class="button">Canlı Yayın Bazında</a>
+            <a href="tum-firma-haritasi.html" class="button">İl, İlçe, Bölge Bazında</a>
+            <a href="uluslararasi-canli-izle.html" class="button">Uluslararası Canlı Yayın Bazında</a>
+            <a href="uluslararasi-kategoriler.html" class="button">Uluslararası Kategoriler Bazında</a>
+            <a href="tum-firma-haritasi.html" class="button">Firmalar Bazında</a>
+        </div>
+    </div>
+    <footer>
+        <a href="hakkimizda.html">Hakkımızda</a> |
+        <a href="sikca-sorulan-sorular.html">Sıkça Sorulan Sorular</a> |
+        <a href="bizi-takip-edin.html">Bizi Takip Edin</a> |
+        <a href="egitim-videolari.html">Eğitim Videoları</a> |
+        <a href="iletisim.html">İletişim</a>
+    </footer>
+
+    <script>
+        document.getElementById('quickLoginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const identifier = document.getElementById('loginIdentifier').value;
+            const password = document.getElementById('loginPassword').value;
+
+            // Special admin login
+            if (identifier === 'admin' && password === 'admin') {
+                window.location.href = 'admin-panel.html';
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('approved-users')) || [];
+            const user = users.find(u => (u.email === identifier || u.phone === identifier) && u.tempPassword === password);
+            if (user) {
+                // Set current user
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                // Redirect to panel
+                window.location.href = `${user.panel}-panel.html`;
+            } else {
+                // Check customers
+                const customers = JSON.parse(localStorage.getItem('customers')) || [];
+                const customer = customers.find(c => (c.email === identifier || c.phone === identifier) && c.password === password);
+                if (customer) {
+                    localStorage.setItem('currentUser', JSON.stringify(customer));
+                    window.location.href = 'musteriler-panel.html';
+                } else {
+                    alert('Geçersiz giriş bilgileri.');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

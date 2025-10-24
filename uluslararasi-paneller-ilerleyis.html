@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paneller Arası İlerleyiş Takibi - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            float: left;
+            width: 200px;
+            padding: 20px;
+            background-color: #ffffff;
+            color: #000000;
+            border-right: 1px solid #ff0000;
+            height: 100vh;
+        }
+        .sidebar h3 {
+            color: #ff0000;
+        }
+        .sidebar .button {
+            display: block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px;
+            margin: 10px 0;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .sidebar .button:hover {
+            background-color: #cc0000;
+        }
+        .main {
+            margin-left: 240px;
+            padding: 50px;
+            text-align: center;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            background-color: #ffffff;
+            color: #000000;
+            text-align: left;
+        }
+        .chain {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .chain-item {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin: 0 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+            min-width: 150px;
+            text-align: center;
+        }
+        .chain-item::after {
+            content: '→';
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            color: #007bff;
+        }
+        .chain-item:last-child::after {
+            content: '';
+        }
+        .progress-bar {
+            background-color: #e9ecef;
+            border-radius: 10px;
+            height: 20px;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            background-color: #28a745;
+            height: 100%;
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ff0000;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>İlerleyiş Takibi</h3>
+        <a href="uluslararasi-ticaret.html" class="button">Geri Dön</a>
+        <a href="#progressOverview" class="button">Genel İlerleyiş</a>
+        <a href="#panelActions" class="button">Panel İşlemleri</a>
+        <a href="#notifications" class="button">Bildirimler</a>
+    </div>
+    <div class="main">
+        <h1><i>Paneller Arası İlerleyiş Takibi</i></h1>
+        <p>Uluslararası ticaret işlemlerinin tüm panellerdeki ilerleyişini takip edin.</p>
+
+        <div id="progressOverview" class="section">
+            <h2>Genel İlerleyiş</h2>
+            <div class="chain">
+                <div class="chain-item">
+                    <h3>Hammadeciler</h3>
+                    <p>Ham madde tedariki</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="hammadeciler-progress"></div>
+                    </div>
+                    <p>İlerleyiş: <span id="hammadeciler-status">Bekleniyor</span></p>
+                </div>
+                <div class="chain-item">
+                    <h3>Üreticiler</h3>
+                    <p>Ürün üretimi</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="ureticiler-progress"></div>
+                    </div>
+                    <p>İlerleyiş: <span id="ureticiler-status">Bekleniyor</span></p>
+                </div>
+                <div class="chain-item">
+                    <h3>Toptancılar</h3>
+                    <p>Toplu satış</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="toptancilar-progress"></div>
+                    </div>
+                    <p>İlerleyiş: <span id="toptancilar-status">Bekleniyor</span></p>
+                </div>
+                <div class="chain-item">
+                    <h3>Satıcılar</h3>
+                    <p>Perakende satış</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="saticilar-progress"></div>
+                    </div>
+                    <p>İlerleyiş: <span id="saticilar-status">Bekleniyor</span></p>
+                </div>
+                <div class="chain-item">
+                    <h3>Uluslararası Ticaret</h3>
+                    <p>Dış ticaret işlemleri</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="uluslararasi-progress"></div>
+                    </div>
+                    <p>İlerleyiş: <span id="uluslararasi-status">Bekleniyor</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="panelActions" class="section">
+            <h2>Panel İşlemleri ve Yapılması Gerekenler</h2>
+            <table id="actionsTable">
+                <thead>
+                    <tr>
+                        <th>Panel</th>
+                        <th>Yapılması Gereken İşlemler</th>
+                        <th>Durum</th>
+                        <th>Sorumlu</th>
+                        <th>Son Tarih</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Hammadeciler</td>
+                        <td>Uluslararası tedarikçi araştırması, numune anlaşması</td>
+                        <td id="hammadeciler-action-status">Bekleniyor</td>
+                        <td>Hammadeci Panel Sahibi</td>
+                        <td>15 gün</td>
+                    </tr>
+                    <tr>
+                        <td>Üreticiler</td>
+                        <td>Ürün standardizasyonu, ihracat sertifikası</td>
+                        <td id="ureticiler-action-status">Bekleniyor</td>
+                        <td>Üretici Panel Sahibi</td>
+                        <td>20 gün</td>
+                    </tr>
+                    <tr>
+                        <td>Toptancılar</td>
+                        <td>İhracat lisans başvurusu, lojistik planlama</td>
+                        <td id="toptancilar-action-status">Bekleniyor</td>
+                        <td>Toptancı Panel Sahibi</td>
+                        <td>25 gün</td>
+                    </tr>
+                    <tr>
+                        <td>Satıcılar</td>
+                        <td>Müşteri portföyü genişletme, pazar araştırması</td>
+                        <td id="saticilar-action-status">Bekleniyor</td>
+                        <td>Satıcı Panel Sahibi</td>
+                        <td>30 gün</td>
+                    </tr>
+                    <tr>
+                        <td>Uluslararası Ticaret</td>
+                        <td>Gümrük işlemleri, döviz kuru takibi, raporlama</td>
+                        <td id="uluslararasi-action-status">Bekleniyor</td>
+                        <td>Admin</td>
+                        <td>Sürekli</td>
+                    </tr>
+                </tbody>
+            </table>
+            <button class="button" onclick="updateProgress()">İlerleyiş Güncelle</button>
+        </div>
+
+        <div id="notifications" class="section">
+            <h2>Bildirimler ve Uyarılar</h2>
+            <ul id="notificationList">
+                <li>Uluslararası ticaret için gerekli belgeler hazır mı? Kontrol edin.</li>
+                <li>Gümrük vergileri güncel mi? Döviz kuru değişikliklerini takip edin.</li>
+                <li>Tedarikçi ve müşteri ilişkilerini güçlendirin.</li>
+                <li>Raporları düzenli olarak inceleyin ve aksiyon alın.</li>
+            </ul>
+        </div>
+
+        <a href="uluslararasi-ticaret.html" class="button">Uluslararası Ticaret</a>
+        <a href="admin-panel.html" class="button">Admin Paneli</a>
+    </div>
+
+    <script>
+        function loadProgress() {
+            const progress = JSON.parse(localStorage.getItem('internationalProgress')) || {
+                hammadeciler: 0,
+                ureticiler: 0,
+                toptancilar: 0,
+                saticilar: 0,
+                uluslararasi: 0
+            };
+
+            Object.keys(progress).forEach(panel => {
+                const percent = progress[panel];
+                document.getElementById(`${panel}-progress`).style.width = percent + '%';
+                document.getElementById(`${panel}-status`).textContent = percent + '% Tamamlandı';
+                document.getElementById(`${panel}-action-status`).textContent = percent >= 100 ? 'Tamamlandı' : 'Devam Ediyor';
+            });
+        }
+
+        function updateProgress() {
+            const progress = JSON.parse(localStorage.getItem('internationalProgress')) || {
+                hammadeciler: 0,
+                ureticiler: 0,
+                toptancilar: 0,
+                saticilar: 0,
+                uluslararasi: 0
+            };
+
+            // Simulate progress update (in real app, this would be based on actual actions)
+            Object.keys(progress).forEach(panel => {
+                if (progress[panel] < 100) {
+                    progress[panel] = Math.min(100, progress[panel] + Math.random() * 20);
+                }
+            });
+
+            localStorage.setItem('internationalProgress', JSON.stringify(progress));
+            loadProgress();
+            alert('İlerleyiş güncellendi.');
+        }
+
+        loadProgress();
+    </script>
+</body>
+</html>

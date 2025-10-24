@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toplantıları Listele - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 5px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ff0000;
+            text-align: left;
+        }
+        th {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Toplantıları Listele</i></h1>
+    <p>Tüm toplantılar saat ve tarih bazında listeleniyor.</p>
+
+    <table id="meetingsTable">
+        <thead>
+            <tr>
+                <th>Başlık</th>
+                <th>Başlatan</th>
+                <th>Tür</th>
+                <th>Katılımcılar</th>
+                <th>Başlangıç Zamanı</th>
+                <th>Tarih</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Meetings will be populated here -->
+        </tbody>
+    </table>
+
+    <a href="admin-panel.html" class="button">Admin Paneli</a>
+    <a href="index.html" class="button">Ana Sayfa</a>
+
+    <script>
+        function loadMeetings() {
+            const meetings = JSON.parse(localStorage.getItem('meetings')) || [];
+            const tbody = document.querySelector('#meetingsTable tbody');
+            tbody.innerHTML = '';
+            meetings.sort((a, b) => new Date(b.startTime) - new Date(a.startTime)); // Sort by time descending
+            meetings.forEach(meeting => {
+                const row = document.createElement('tr');
+                const startDate = new Date(meeting.startTime);
+                row.innerHTML = `
+                    <td>${meeting.title}</td>
+                    <td>${meeting.startedBy}</td>
+                    <td>${meeting.type || 'Genel'}</td>
+                    <td>${meeting.participants.map(p => p.name).join(', ')}</td>
+                    <td>${startDate.toLocaleTimeString()}</td>
+                    <td>${startDate.toLocaleDateString()}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        loadMeetings();
+    </script>
+</body>
+</html>

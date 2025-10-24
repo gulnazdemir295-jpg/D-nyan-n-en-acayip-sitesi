@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dükkan POS Sistemi - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid #ff0000;
+        }
+        .pos-container {
+            display: flex;
+            height: calc(100vh - 80px);
+        }
+        .product-list {
+            flex: 2;
+            background-color: #ffffff;
+            color: #000000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .cart-section {
+            flex: 1;
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-left: 2px solid #ff0000;
+            display: flex;
+            flex-direction: column;
+        }
+        .product-card {
+            background-color: #ffffff;
+            border: 1px solid #ff0000;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .product-card:hover {
+            background-color: #ffe6e6;
+        }
+        .product-card h3 {
+            margin: 0 0 10px 0;
+            color: #ff0000;
+        }
+        .product-card .price {
+            font-weight: bold;
+            color: #000000;
+        }
+        .product-card .stock {
+            color: #666;
+            font-size: 12px;
+        }
+        .cart-item {
+            background-color: #ffffff;
+            border: 1px solid #ff0000;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cart-total {
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px;
+            margin-top: auto;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .button {
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 15px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        .button.secondary {
+            background-color: #666;
+        }
+        .button.secondary:hover {
+            background-color: #444;
+        }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .quantity-controls button {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            background-color: #ff0000;
+            color: white;
+            cursor: pointer;
+        }
+        .search-bar {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .category-filter {
+            margin-bottom: 20px;
+        }
+        .category-filter select {
+            padding: 8px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .sync-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        .sync-status.online {
+            background-color: #00ff00;
+            color: #000000;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i>Dükkan POS Sistemi</i></h1>
+        <p>Mağaza satışlarınızı kolayca yönetin</p>
+        <div class="sync-status" id="syncStatus">Çevrimdışı</div>
+    </div>
+
+    <div class="pos-container">
+        <div class="product-list">
+            <input type="text" class="search-bar" id="searchBar" placeholder="Ürün ara...">
+            <div class="category-filter">
+                <select id="categoryFilter">
+                    <option value="">Tüm Kategoriler</option>
+                    <option value="hammadde">Hammadde</option>
+                    <option value="uretim">Üretim</option>
+                    <option value="toptan">Toptan</option>
+                    <option value="satis">Satış</option>
+                    <option value="Yöresel Lezzetler">Yöresel Lezzetler</option>
+                    <option value="El Sanatları">El Sanatları</option>
+                </select>
+            </div>
+            <div id="productGrid">
+                <!-- Products will be loaded here -->
+            </div>
+        </div>
+
+        <div class="cart-section">
+            <h2>Sepet</h2>
+            <div id="cartItems">
+                <!-- Cart items will be displayed here -->
+            </div>
+            <div class="cart-total" id="cartTotal">
+                Toplam: 0.00 TL
+            </div>
+            <button class="button" onclick="completeSale()">Satışı Tamamla</button>
+            <button class="button secondary" onclick="clearCart()">Sepeti Temizle</button>
+            <button class="button secondary" onclick="viewSalesHistory()">Satış Geçmişi</button>
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+        let products = [];
+        let currentUser = JSON.parse(localStorage.getItem('currentUser')) || {};
+
+        // Load products from localStorage
+        function loadProducts() {
+            const panel = currentUser.panel || 'saticilar';
+            products = JSON.parse(localStorage.getItem('products-' + panel)) || [];
+            displayProducts(products);
+        }
+
+        // Display products in grid
+        function displayProducts(productList) {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = '';
+
+            productList.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.onclick = () => addToCart(product);
+                card.innerHTML = `
+                    <h3>${product.name}</h3>
+                    <div class="price">${product.price} TL</div>
+                    <div class="stock">Stok: ${product.stock}</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Add product to cart
+        function addToCart(product) {
+            if (product.stock <= 0) {
+                alert('Bu ürün stokta yok!');
+                return;
+            }
+
+            const existingItem = cart.find(item => item.name === product.name);
+            if (existingItem) {
+                if (existingItem.quantity >= product.stock) {
+                    alert('Yeterli stok yok!');
+                    return;
+                }
+                existingItem.quantity++;
+            } else {
+                cart.push({...product, quantity: 1});
+            }
+            updateCartDisplay();
+        }
+
+        // Update cart display
+        function updateCartDisplay() {
+            const cartContainer = document.getElementById('cartItems');
+            cartContainer.innerHTML = '';
+
+            let total = 0;
+            cart.forEach((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+
+                const cartItem = document.createElement('div');
+                cartItem.className = 'cart-item';
+                cartItem.innerHTML = `
+                    <div>
+                        <strong>${item.name}</strong><br>
+                        ${item.price} TL x ${item.quantity} = ${itemTotal} TL
+                    </div>
+                    <div class="quantity-controls">
+                        <button onclick="changeQuantity(${index}, -1)">-</button>
+                        <span>${item.quantity}</span>
+                        <button onclick="changeQuantity(${index}, 1)">+</button>
+                        <button onclick="removeFromCart(${index})" style="background-color: #ff4444;">×</button>
+                    </div>
+                `;
+                cartContainer.appendChild(cartItem);
+            });
+
+            document.getElementById('cartTotal').textContent = `Toplam: ${total.toFixed(2)} TL`;
+        }
+
+        // Change quantity
+        function changeQuantity(index, change) {
+            cart[index].quantity += change;
+            if (cart[index].quantity <= 0) {
+                cart.splice(index, 1);
+            }
+            updateCartDisplay();
+        }
+
+        // Remove from cart
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartDisplay();
+        }
+
+        // Complete sale
+        function completeSale() {
+            if (cart.length === 0) {
+                alert('Sepet boş!');
+                return;
+            }
+
+            const sale = {
+                id: Date.now(),
+                items: cart,
+                total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                timestamp: new Date().toISOString(),
+                user: currentUser.company
+            };
+
+            // Save sale to localStorage
+            const sales = JSON.parse(localStorage.getItem('pos-sales')) || [];
+            sales.push(sale);
+            localStorage.setItem('pos-sales', JSON.stringify(sales));
+
+            // Update stock levels
+            updateStockLevels();
+
+            // Sync with online inventory
+            syncWithOnlineInventory();
+
+            alert('Satış tamamlandı!');
+            cart = [];
+            updateCartDisplay();
+            loadProducts(); // Refresh product list with updated stock
+        }
+
+        // Update stock levels
+        function updateStockLevels() {
+            const panel = currentUser.panel || 'saticilar';
+            let currentProducts = JSON.parse(localStorage.getItem('products-' + panel)) || [];
+
+            cart.forEach(cartItem => {
+                const product = currentProducts.find(p => p.name === cartItem.name);
+                if (product) {
+                    product.stock -= cartItem.quantity;
+                }
+            });
+
+            localStorage.setItem('products-' + panel, JSON.stringify(currentProducts));
+        }
+
+        // Sync with online inventory
+        function syncWithOnlineInventory() {
+            // Simulate sync
+            document.getElementById('syncStatus').textContent = 'Senkronize ediliyor...';
+            document.getElementById('syncStatus').className = 'sync-status';
+
+            setTimeout(() => {
+                document.getElementById('syncStatus').textContent = 'Çevrimiçi';
+                document.getElementById('syncStatus').className = 'sync-status online';
+            }, 2000);
+        }
+
+        // Clear cart
+        function clearCart() {
+            if (confirm('Sepeti temizlemek istediğinizden emin misiniz?')) {
+                cart = [];
+                updateCartDisplay();
+            }
+        }
+
+        // View sales history
+        function viewSalesHistory() {
+            window.location.href = 'satis-gecmisi.html';
+        }
+
+        // Search products
+        document.getElementById('searchBar').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const filteredProducts = products.filter(product =>
+                product.name.toLowerCase().includes(searchTerm)
+            );
+            displayProducts(filteredProducts);
+        });
+
+        // Filter by category
+        document.getElementById('categoryFilter').addEventListener('change', function() {
+            const category = this.value;
+            const filteredProducts = category ?
+                products.filter(product => product.category === category) :
+                products;
+            displayProducts(filteredProducts);
+        });
+
+        // Initialize
+        loadProducts();
+        syncWithOnlineInventory();
+    </script>
+</body>
+</html>

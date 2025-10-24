@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toplantıyı Başlat - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        input, select, textarea {
+            padding: 10px;
+            margin: 10px;
+            width: 300px;
+        }
+        #inviteList {
+            display: none;
+            background-color: #ffffff;
+            color: #000000;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 300px;
+            margin: 0 auto;
+        }
+        .inviteItem {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .inviteItem:hover {
+            background-color: #f0f0f0;
+        }
+        .selected {
+            background-color: #ffcccc;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Toplantıyı Başlat</i></h1>
+    <p>Davet etmek istediğiniz kişileri seçin ve toplantıyı başlatın.</p>
+
+    <label for="inviteSearch">Kişi Ara:</label><br>
+    <input type="text" id="inviteSearch" placeholder="İsim veya e-posta ile ara"><br>
+    <div id="inviteList"></div><br>
+
+    <label for="meetingTitle">Toplantı Başlığı:</label><br>
+    <input type="text" id="meetingTitle" placeholder="Toplantı başlığını girin"><br>
+
+    <button class="button" onclick="startMeeting()">Toplantıyı Başlat</button>
+    <a href="javascript:history.back()" class="button">Geri</a>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const type = urlParams.get('type') || 'general';
+        let users = [];
+        if (type === 'new-seller') {
+            users = JSON.parse(localStorage.getItem('pending-applications')) || [];
+            users = users.map(app => ({ name: app.name, email: app.email, panel: app.panel }));
+        } else if (type === 'problem-solving') {
+            const customers = JSON.parse(localStorage.getItem('users')) || [];
+            const panels = ['hammadeciler', 'ureticiler', 'toptancilar', 'saticilar'];
+            const panelUsers = panels.flatMap(panel => {
+                const prods = JSON.parse(localStorage.getItem('products-' + panel)) || [];
+                return prods.map(p => ({ name: p.name + ' (' + panel + ')', email: panel + '@example.com', panel: panel }));
+            });
+            users = [...customers, ...panelUsers];
+        } else if (type === 'internal') {
+            users = [
+                { name: 'Müşteri Hizmetleri 1', email: 'mh1@example.com' },
+                { name: 'Müşteri Hizmetleri 2', email: 'mh2@example.com' }
+            ];
+        } else {
+            users = JSON.parse(localStorage.getItem('users')) || [
+                { name: 'Ahmet Yılmaz', email: 'ahmet@example.com' },
+                { name: 'Ayşe Kaya', email: 'ayse@example.com' },
+                { name: 'Mehmet Demir', email: 'mehmet@example.com' },
+                { name: 'Fatma Çelik', email: 'fatma@example.com' }
+            ];
+        }
+        let selectedUsers = [];
+
+        document.getElementById('inviteSearch').addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            const list = document.getElementById('inviteList');
+            list.innerHTML = '';
+            if (query) {
+                const filtered = users.filter(user => user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query));
+                filtered.forEach(user => {
+                    const div = document.createElement('div');
+                    div.className = 'inviteItem';
+                    div.textContent = user.name + ' (' + user.email + ')';
+                    div.onclick = () => toggleSelect(user, div);
+                    list.appendChild(div);
+                });
+                list.style.display = 'block';
+            } else {
+                list.style.display = 'none';
+            }
+        });
+
+        function toggleSelect(user, element) {
+            const index = selectedUsers.findIndex(u => u.email === user.email);
+            if (index > -1) {
+                selectedUsers.splice(index, 1);
+                element.classList.remove('selected');
+            } else {
+                selectedUsers.push(user);
+                element.classList.add('selected');
+            }
+        }
+
+        function startMeeting() {
+            const title = document.getElementById('meetingTitle').value;
+            if (selectedUsers.length === 0 || !title) {
+                alert('Lütfen katılımcıları seçin ve başlık girin.');
+                return;
+            }
+            const meeting = {
+                title: title,
+                participants: selectedUsers,
+                startedBy: 'Müşteri Hizmetleri', // Assuming current user
+                type: type,
+                startTime: new Date().toISOString()
+            };
+            const meetings = JSON.parse(localStorage.getItem('meetings')) || [];
+            meetings.push(meeting);
+            localStorage.setItem('meetings', JSON.stringify(meetings));
+            alert('Toplantı başlatıldı! Video konferans için kamera erişimine izin verin.');
+            // Simulate starting video
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(function(stream) {
+                    const video = document.createElement('video');
+                    video.srcObject = stream;
+                    video.play();
+                    document.body.appendChild(video);
+                }).catch(function(err) {
+                    console.log('Video erişimi reddedildi: ' + err);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

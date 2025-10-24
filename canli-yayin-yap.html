@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canlı Yayın Yap - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        input, select, textarea {
+            padding: 10px;
+            margin: 10px;
+            width: 300px;
+        }
+        #productList {
+            display: none;
+            background-color: #ffffff;
+            color: #000000;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 300px;
+            margin: 0 auto;
+        }
+        .productItem {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .productItem:hover {
+            background-color: #f0f0f0;
+        }
+        #subtitles {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 18px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Canlı Yayın Yap</i></h1>
+    <p>Kategori ve ürünü seçin, sloganınızı yazın.</p>
+
+    <label for="product">Numune Ürün Seçin:</label><br>
+    <select id="product">
+        <option value="">Seçin</option>
+    </select><br>
+
+    <label for="slogan">Slogan / Cümleler (Yayın altında görünecek):</label><br>
+    <textarea id="slogan" rows="4" placeholder="Sloganınızı yazın..."></textarea><br>
+
+    <button class="button" onclick="startBroadcast()">Bas Sat</button>
+    <a href="canli-yayin-odeme.html" class="button">Geri</a>
+
+    <div id="subtitles"></div>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const agreements = JSON.parse(localStorage.getItem('sampleAgreements')) || [];
+        const acceptedAgreements = agreements.filter(a => a.seller === currentUser.email && a.status === 'accepted');
+        const productSelect = document.getElementById('product');
+        acceptedAgreements.forEach(agreement => {
+            const option = document.createElement('option');
+            option.value = agreement.product;
+            option.textContent = agreement.product + ' (Tedarikçi: ' + agreement.supplier + ')';
+            productSelect.appendChild(option);
+        });
+
+        // Mock AI Translation Dictionary
+        const translations = {
+            'en': {
+                'Welcome to the live broadcast!': 'Canlı yayına hoş geldiniz!',
+                'This product is amazing!': 'Bu ürün harika!',
+                'Buy now!': 'Şimdi satın al!'
+            },
+            'tr': {
+                'Welcome to the live broadcast!': 'Canlı yayına hoş geldiniz!',
+                'This product is amazing!': 'Bu ürün harika!',
+                'Buy now!': 'Şimdi satın al!'
+            },
+            'es': {
+                'Welcome to the live broadcast!': '¡Bienvenido a la transmisión en vivo!',
+                'This product is amazing!': '¡Este producto es increíble!',
+                'Buy now!': '¡Compra ahora!'
+            }
+            // Add more languages as needed
+        };
+
+        function getTranslation(text, targetLang) {
+            // Mock AI translation - in real implementation, use Google Translate API or similar
+            const phrases = Object.keys(translations['en']);
+            for (let phrase of phrases) {
+                if (text.includes(phrase)) {
+                    return translations[targetLang][phrase] || text;
+                }
+            }
+            return text; // Fallback to original
+        }
+
+        function startBroadcast() {
+            const product = document.getElementById('product').value;
+            const slogan = document.getElementById('slogan').value;
+            if (product && slogan) {
+                // Find the agreement
+                const agreement = acceptedAgreements.find(a => a.product === product);
+                if (agreement) {
+                    // Find product price from products data
+                    const allProducts = [];
+                    ['hammadeciler', 'ureticiler', 'toptancilar', 'saticilar'].forEach(panel => {
+                        const products = JSON.parse(localStorage.getItem('products-' + panel)) || [];
+                        allProducts.push(...products);
+                    });
+                    const prod = allProducts.find(p => p.name === product);
+                    if (prod) {
+                        const commissionAmount = prod.price * (agreement.commissionRate / 100);
+                        const commissionSale = {
+                            product: product,
+                            seller: currentUser.email,
+                            supplier: agreement.supplier,
+                            commissionAmount: commissionAmount,
+                            date: new Date().toISOString(),
+                            status: 'unpaid'
+                        };
+                        const commissionSales = JSON.parse(localStorage.getItem('commissionSales')) || [];
+                        commissionSales.push(commissionSale);
+                        localStorage.setItem('commissionSales', JSON.stringify(commissionSales));
+                        alert('Canlı yayın başlatıldı! Ürün: ' + product + ', Slogan: ' + slogan + ', Komisyon: ' + commissionAmount + ' TL');
+
+                        // Simulate real-time subtitles with translation
+                        const viewerLang = 'es'; // Mock viewer language, in real: get from user profile
+                        const broadcasterLang = 'tr'; // Mock broadcaster language
+
+                        // Simulate translated subtitles
+                        const subtitleTexts = [
+                            getTranslation('Welcome to the live broadcast!', viewerLang),
+                            getTranslation('This product is amazing!', viewerLang),
+                            getTranslation('Buy now!', viewerLang)
+                        ];
+
+                        let index = 0;
+                        const subtitleInterval = setInterval(() => {
+                            const subtitlesDiv = document.getElementById('subtitles');
+                            subtitlesDiv.textContent = subtitleTexts[index % subtitleTexts.length];
+                            subtitlesDiv.style.display = 'block';
+                            index++;
+
+                            // For broadcaster, show in their language
+                            if (broadcasterLang !== viewerLang) {
+                                console.log('Translated for broadcaster:', getTranslation(subtitleTexts[index % subtitleTexts.length], broadcasterLang));
+                            }
+                        }, 3000); // Change subtitle every 3 seconds
+
+                        setTimeout(() => {
+                            clearInterval(subtitleInterval);
+                            document.getElementById('subtitles').style.display = 'none';
+                        }, 15000); // Stop after 15 seconds for demo
+                    } else {
+                        alert('Ürün fiyatı bulunamadı.');
+                    }
+                } else {
+                    alert('Anlaşma bulunamadı.');
+                }
+            } else {
+                alert('Lütfen ürün seçin ve slogan yazın.');
+            }
+        }
+    </script>
+</body>
+</html>

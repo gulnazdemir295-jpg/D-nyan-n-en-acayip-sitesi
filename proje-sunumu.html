@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proje Sunumu: Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        .slide {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 50px;
+            box-sizing: border-box;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        h1, h2, h3 {
+            font-style: italic;
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+        ul, ol {
+            text-align: left;
+            max-width: 800px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        li {
+            margin: 10px 0;
+            padding-left: 10px;
+            border-left: 3px solid #28a745;
+        }
+        table {
+            width: 100%;
+            max-width: 800px;
+            border-collapse: collapse;
+            background-color: #fff;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+        .chain {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .chain-item {
+            background-color: #fff;
+            padding: 15px;
+            margin: 0 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .chain-item::after {
+            content: '→';
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            color: #007bff;
+        }
+        .chain-item:last-child::after {
+            content: '';
+        }
+        .nav {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
+        .nav button {
+            background-color: #28a745;
+            color: #ffffff;
+            border: none;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .nav button:hover {
+            background-color: #218838;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .hidden {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .slide {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            ul, table {
+                max-width: 100%;
+            }
+            .chain {
+                flex-direction: column;
+            }
+            .chain-item::after {
+                content: '↓';
+                right: 50%;
+                top: -20px;
+                transform: translateX(50%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="slide1" class="slide">
+        <h1>Dünyanın En Acayip Sitesi</h1>
+        <h2>E-Ticaret ve Canlı Satış Platformu</h2>
+        <p>Proje Tanıtımı</p>
+        <p>Sunum Tarihi: [Tarih Ekle]</p>
+        <p><strong>Platform Amacı:</strong> Türkiye'deki yerel üreticileri, tedarik zincirini ve müşterileri bir araya getiren yenilikçi e-ticaret çözümü.</p>
+    </div>
+
+    <div id="slide2" class="slide hidden">
+        <h1>Proje Genel Bakış</h1>
+        <h2>Tedarik Zinciri ve Kullanıcı Akışı</h2>
+        <div class="chain">
+            <div class="chain-item">
+                <h3>Hammadeciler</h3>
+                <p>Ham madde tedariki<br><small>Sadece üreticilere satış</small></p>
+            </div>
+            <div class="chain-item">
+                <h3>Üreticiler</h3>
+                <p>Ürün üretimi<br><small>Hammadecilerden alım, toptancılara satış</small></p>
+            </div>
+            <div class="chain-item">
+                <h3>Toptancılar</h3>
+                <p>Toplu satış<br><small>Üreticilerden alım, satıcılara satış</small></p>
+            </div>
+            <div class="chain-item">
+                <h3>Satıcılar</h3>
+                <p>Perakende satış<br><small>Toptancılardan alım, müşterilere satış</small></p>
+            </div>
+            <div class="chain-item">
+                <h3>Müşteriler</h3>
+                <p>Satın alma<br><small>Sadece satıcılardan alım</small></p>
+            </div>
+        </div>
+        <h3>Ana Özellikler Özeti</h3>
+        <ul>
+            <li>Zincir boyunca sipariş akışı ve onay mekanizmaları</li>
+            <li>Canlı yayın üzerinden satış</li>
+            <li>Yöresel lezzetler ve el sanatları vurgusu</li>
+            <li>Uluslararası ticaret desteği</li>
+            <li>Kapsamlı admin ve kullanıcı panelleri</li>
+            <li>Finansal yönetim (muhasebe, komisyon, fatura)</li>
+        </ul>
+    </div>
+
+    <div id="slide3" class="slide hidden">
+        <h1>Ana Özellikler</h1>
+        <h2>Kategori Bazlı Dağılım</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Kategori</th>
+                    <th>Özellikler</th>
+                    <th>Faydalar</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Canlı Yayın</strong></td>
+                    <td>Satıcılar canlı yayın yaparak ürünleri tanıtır, izleyiciler gerçek zamanlı izler ve satın alır.</td>
+                    <td>Etkileşimli satış, müşteri sadakati artışı</td>
+                </tr>
+                <tr>
+                    <td><strong>Ürün Yönetimi</strong></td>
+                    <td>Farklı kategorilerde (yöresel, el sanatları) ürün ekleme, düzenleme, arama.</td>
+                    <td>Stok takibi, bölgesel vurgu</td>
+                </tr>
+                <tr>
+                    <td><strong>Kullanıcı Panelleri</strong></td>
+                    <td>Hammadeciler, Üreticiler, Toptancılar, Satıcılar, Müşteriler için özelleştirilmiş arayüzler.</td>
+                    <td>Rol bazlı erişim, kolay kullanım</td>
+                </tr>
+                <tr>
+                    <td><strong>Finansal Araçlar</strong></td>
+                    <td>Komisyon takibi, fatura oluşturma, gelir-gider yönetimi, POS entegrasyonu.</td>
+                    <td>Şeffaf finansal işlemler</td>
+                </tr>
+                <tr>
+                    <td><strong>Uluslararası Destek</strong></td>
+                    <td>Döviz çevirici, uluslararası kargo, AI tabanlı çeviri (altyazı ve mesajlar), gümrük danışmanlığı sistemi.</td>
+                    <td>Global erişim, güvenli ticaret</td>
+                </tr>
+                <tr>
+                    <td><strong>Admin Araçları</strong></td>
+                    <td>Kullanıcı yönetimi, raporlama, HR ve muhasebe panelleri.</td>
+                    <td>Tam kontrol ve raporlama</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="slide4" class="slide hidden">
+        <h1>Kullanıcı Rolleri ve Paneller</h1>
+        <h2>Rol Bazlı Yetkiler ve İşlevler</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rol</th>
+                    <th>Ana İşlevler</th>
+                    <th>Özel Özellikler</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Hammadeciler</strong></td>
+                    <td>Ürün ekleme, stok takibi, canlı yayın yapma, sipariş yönetimi, üreticilere satış.</td>
+                    <td>Ham madde tedariki, numune anlaşmaları, zincirde sadece satış</td>
+                </tr>
+                <tr>
+                    <td><strong>Üreticiler</strong></td>
+                    <td>Ürün üretimi, hammadecilerden satın alma, toptancılara satış, kampanya yapma.</td>
+                    <td>Üretim zinciri yönetimi, zincirde alım + satış</td>
+                </tr>
+                <tr>
+                    <td><strong>Toptancılar</strong></td>
+                    <td>Toplu satış, üreticilerden satın alma, satıcılara satış, ürün yönetimi.</td>
+                    <td>Toptan fiyatlandırma, zincirde alım + satış</td>
+                </tr>
+                <tr>
+                    <td><strong>Satıcılar</strong></td>
+                    <td>Perakende satış, toptancılardan satın alma, müşterilere satış, canlı yayın, müşteri etkileşimi.</td>
+                    <td>Komisyon sistemi, zincirde alım + satış</td>
+                </tr>
+                <tr>
+                    <td><strong>Müşteriler</strong></td>
+                    <td>Ürün arama, satıcılardan satın alma, sipariş takibi.</td>
+                    <td>Müşteri paneli, canlı izleme, zincirde sadece alım</td>
+                </tr>
+                <tr>
+                    <td><strong>Admin</strong></td>
+                    <td>Tüm panellere erişim, başvuru inceleme, raporlar, finansal yönetim, gümrük danışmanları yönetimi.</td>
+                    <td>HR, muhasebe, uluslararası ticaret, danışman ağı</td>
+                </tr>
+                <tr>
+                    <td><strong>Yöresel Lezzetler / El Sanatları</strong></td>
+                    <td>Özel kayıt ve yönetim, kültürel vurgu.</td>
+                    <td>Son kullanma tarihi uyarıları, hikaye paylaşımı</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="slide5" class="slide hidden">
+        <h1>Teknik Uygulama</h1>
+        <h2>Teknoloji ve Yapı</h2>
+        <ul>
+            <li><strong>Teknolojiler:</strong> HTML5, CSS3, Vanilla JavaScript. Veri depolama: localStorage (gerçek projede veritabanı önerilir).</li>
+            <li><strong>Yapı:</strong> Tek sayfa uygulaması benzeri, her panel ayrı HTML dosyası ile modüler.</li>
+            <li><strong>Özellikler:</strong> Form doğrulaması, dinamik içerik yükleme, filtreleme, mock AI çeviri (altyazılar için).</li>
+            <li><strong>Güvenlik:</strong> Basit giriş sistemi (localStorage tabanlı), gerçekte şifreleme ve sunucu tarafı eklenmeli.</li>
+            <li><strong>Mobil Uyum:</strong> Responsive tasarım ile mobil destekli.</li>
+        </ul>
+        <h3>Geliştirme Adımları</h3>
+        <ol>
+            <li>HTML şablonları oluşturma</li>
+            <li>JavaScript ile etkileşim ekleme</li>
+            <li>localStorage entegrasyonu</li>
+            <li>Responsive tasarım uygulama</li>
+            <li>Test ve hata düzeltme</li>
+        </ol>
+    </div>
+
+    <div id="slide6" class="slide hidden">
+        <h1>Sistemin Faydaları</h1>
+        <h2>Ekonomik, Sosyal ve İş Kolaylaştırıcı Etkiler</h2>
+        <h3>Ekonomik Faydalar</h3>
+        <ul>
+            <li><strong>Kazanç Artışı:</strong> Canlı yayın satışları ile doğrudan müşteri etkileşimi, komisyon sistemi ile gelir artışı</li>
+            <li><strong>Maliyet Tasarrufu:</strong> Fiziksel toplantılara gerek kalmadan online toplantılar, uluslararası kargo optimizasyonu</li>
+            <li><strong>Pazar Genişlemesi:</strong> Küresel erişim ile yeni pazarlara ulaşım, döviz çevirici ile kolay ticaret</li>
+            <li><strong>Verimlilik:</strong> Otomatik sipariş takibi, stok yönetimi ve raporlama ile zaman kazanımı</li>
+            <li><strong>Gümrük Danışmanlığı ile Risk Azaltma:</strong> Profesyonel danışman desteği ile gümrük cezaları ve kayıplardan kaçınma, ticaret maliyetlerinde optimizasyon</li>
+        </ul>
+        <h3>Sosyal Faydalar</h3>
+        <ul>
+            <li><strong>Yerel Ekonomiyi Güçlendirme:</strong> Yöresel lezzetler ve el sanatları ile kültürel değerlerin korunması</li>
+            <li><strong>Erişilebilirlik:</strong> Herkesin evinden iş yapabilmesi, coğrafi sınırlamaların aşılması</li>
+            <li><strong>Toplumsal Bağ:</strong> Canlı yayınlar aracılığıyla üretici-müşteri etkileşimi</li>
+            <li><strong>Gümrük Danışmanlığı ile Eğitim ve Farkındalık:</strong> Uluslararası ticaret eğitimleri ile işletmelerin bilgi seviyesini artırma, sürdürülebilir ticaret uygulamaları</li>
+        </ul>
+    </div>
+
+    <div id="slide7" class="slide hidden">
+        <h1>Canlı Yayın ve Toplantı Sistemi</h1>
+        <h2>İş Kolaylaştırıcı Özellikler</h2>
+        <h3>Canlı Yayın Satışlarının Faydaları</h3>
+        <ul>
+            <li><strong>Anlık Etkileşim:</strong> Üreticiler ve satıcılar ürünlerini canlı tanıtarak müşteri güvenini artırır</li>
+            <li><strong>Doğrudan Satış:</strong> Komisyon kesintisi olmadan doğrudan kazanç, müşteri sadakati oluşur</li>
+            <li><strong>Gerçek Zamanlı Geri Bildirim:</strong> Müşteri sorularına anında yanıt, ürün iyileştirmesi</li>
+            <li><strong>Viral Etki:</strong> İlgi çekici yayınlar sosyal medya aracılığıyla yayılır</li>
+            <li><strong>Gümrük Danışmanlığı Desteği:</strong> Uluslararası canlı yayınlarda danışman katılımı ile gümrük prosedürleri hakkında bilgi verme</li>
+        </ul>
+        <h3>Online Toplantı Sistemi</h3>
+        <ul>
+            <li><strong>Maliyet Tasarrufu:</strong> Seyahat ve toplantı salonu giderlerini ortadan kaldırır</li>
+            <li><strong>Zaman Verimliliği:</strong> Her yerden katılım, trafik ve hazırlık süresi azalır</li>
+            <li><strong>Çevre Dostu:</strong> Karbon ayak izini azaltır, sürdürülebilir iş modelleri destekler</li>
+            <li><strong>Kapsayıcılık:</strong> Engelli bireyler ve uzak bölgelerdeki kişiler kolayca katılır</li>
+            <li><strong>Gümrük Danışmanlığı Entegrasyonu:</strong> Uzman danışmanlarla canlı toplantılar düzenleme, uluslararası ticaret danışmanlığı için özel oturumlar</li>
+        </ul>
+    </div>
+
+    <div id="slide8" class="slide hidden">
+        <h1>Uluslararası Ticaret</h1>
+        <h2>Sistemin Öncü Özellikleri</h2>
+        <h3>Uluslararası Ticareti Kolaylaştıran Özellikler</h3>
+        <ul>
+            <li><strong>Döviz Çevirici:</strong> Anlık döviz kurları ile şeffaf fiyatlandırma</li>
+            <li><strong>AI Çeviri:</strong> Canlı altyazı ve mesaj çevirisi ile dil bariyerini aşar</li>
+            <li><strong>Uluslararası Kargo:</strong> Farklı ülkeler arası gönderim optimizasyonu</li>
+            <li><strong>Gümrük Danışmanlığı Sistemi:</strong> Profesyonel danışmanlar aracılığıyla gümrük prosedürleri rehberliği, canlı toplantılar ve uzman desteği</li>
+        </ul>
+        <h3>Sistemin Öncü Yönleri</h3>
+        <ul>
+            <li><strong>Tedarik Zinciri Entegrasyonu:</strong> İlk kez zincir boyunca dijitalleşme</li>
+            <li><strong>Yerel-Global Köprü:</strong> Yöresel ürünleri dünya pazarına taşıma</li>
+            <li><strong>AI Destekli Ticaret:</strong> Akıllı öneriler ve dolandırıcılık tespiti</li>
+            <li><strong>Sosyal Ticaret Platformu:</strong> Ticaret + sosyal etkileşim bir arada</li>
+            <li><strong>Gümrük Danışmanlığı Entegrasyonu:</strong> Profesyonel danışman ağı ile uluslararası ticaretin karmaşıklığını basitleştirme, canlı destek ve uzman rehberliği</li>
+        </ul>
+    </div>
+
+    <div id="slide9" class="slide hidden">
+        <h1>Sonuç ve Çağrı</h1>
+        <h2>Platformun Küresel Etkisi</h2>
+        <p>Bu platform, yerel ekonomileri küresel pazara bağlayan, sosyal ve ekonomik kalkınmayı hızlandıran öncü bir sistemdir. Gümrük danışmanlığı sistemi ile uluslararası ticaretin risklerini minimize ederek, işletmelerin güvenle global pazara açılmasını sağlar.</p>
+        <h3>Bir Arada Çalışmanın Faydaları</h3>
+        <ul>
+            <li><strong>Ekonomik Büyüme:</strong> Zincir boyunca verimlilik artışı, yeni istihdam alanları</li>
+            <li><strong>Sosyal Adalet:</strong> Küçük üreticilerin büyük pazarlara erişimi</li>
+            <li><strong>Çevre Koruma:</strong> Dijitalleşme ile fiziksel kaynak tüketimi azalır</li>
+            <li><strong>Kültürel Zenginlik:</strong> Yöresel değerlerin korunması ve paylaşılması</li>
+            <li><strong>Gümrük Danışmanlığı ile Güvenli Ticaret:</strong> Uluslararası ticaret risklerini minimize etme, uzman desteği ile yasal uyumluluk ve maliyet optimizasyonu</li>
+        </ul>
+        <h3>Demo Erişimi</h3>
+        <p>Demo için: <a href="index.html" style="color: #ff0000; text-decoration: underline;">index.html</a> dosyasını tarayıcıda açın.</p>
+        <p>Teşekkürler! Sorularınız için iletişime geçin.</p>
+    </div>
+
+    <div class="nav">
+        <button onclick="prevSlide()">Önceki</button>
+        <button onclick="nextSlide()">Sonraki</button>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 9;
+
+        function showSlide(n) {
+            for (let i = 1; i <= totalSlides; i++) {
+                document.getElementById('slide' + i).classList.add('hidden');
+            }
+            document.getElementById('slide' + n).classList.remove('hidden');
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                currentSlide++;
+                showSlide(currentSlide);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                currentSlide--;
+                showSlide(currentSlide);
+            }
+        }
+
+        // Initial load
+        showSlide(1);
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+    </script>
+</body>
+</html>
