@@ -104,19 +104,7 @@
             <a href="test-urun-ekleme.html" class="button">Test Ürün Ekle</a>
         </div>
 
-        <div style="margin: 20px 0; padding: 20px; border: 1px solid #ff0000; border-radius: 5px;">
-            <h2>Numune Anlaşması Öner</h2>
-            <form id="sampleAgreementForm">
-                <label>Satıcı Seç: <select id="sellerSelect" required>
-                    <option value="">Seçin</option>
-                </select></label><br>
-                <label>Numune Ürün Seç: <select id="sampleProductSelect" required>
-                    <option value="">Seçin</option>
-                </select></label><br>
-                <label>Komisyon Oranı (%): <input type="number" step="0.01" id="agreementCommissionRate" min="0" max="100" required></label><br>
-                <button type="submit" class="button">Öneri Gönder</button>
-            </form>
-        </div>
+
 
         <div style="margin: 20px 0; padding: 20px; border: 1px solid #ff0000; border-radius: 5px;">
             <h2>Üreticilerden Satın Al</h2>
@@ -219,51 +207,7 @@
             alert('Satın alma işlemi gerçekleştirildi.');
         }
 
-        // Sample Agreement functionality
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        const users = JSON.parse(localStorage.getItem('users')) || [];
-        const sellers = users.filter(u => u.panel === 'saticilar');
-        const sellerSelect = document.getElementById('sellerSelect');
-        sellers.forEach(seller => {
-            const option = document.createElement('option');
-            option.value = seller.email;
-            option.textContent = seller.company || seller.name;
-            sellerSelect.appendChild(option);
-        });
 
-        const ownProducts = JSON.parse(localStorage.getItem('products-toptancilar')) || [];
-        const sampleProducts = ownProducts.filter(p => p.isSample);
-        const sampleProductSelect = document.getElementById('sampleProductSelect');
-        sampleProducts.forEach(product => {
-            const option = document.createElement('option');
-            option.value = product.name;
-            option.textContent = product.name + ' (' + product.commissionRate + '%)';
-            sampleProductSelect.appendChild(option);
-        });
-
-        document.getElementById('sampleAgreementForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const seller = document.getElementById('sellerSelect').value;
-            const product = document.getElementById('sampleProductSelect').value;
-            const commissionRate = parseFloat(document.getElementById('agreementCommissionRate').value);
-            if (seller && product && commissionRate) {
-                const agreement = {
-                    supplier: currentUser.email,
-                    seller: seller,
-                    product: product,
-                    commissionRate: commissionRate,
-                    status: 'pending',
-                    date: new Date().toISOString()
-                };
-                const agreements = JSON.parse(localStorage.getItem('sampleAgreements')) || [];
-                agreements.push(agreement);
-                localStorage.setItem('sampleAgreements', JSON.stringify(agreements));
-                alert('Numune anlaşması önerisi gönderildi.');
-                this.reset();
-            } else {
-                alert('Lütfen tüm alanları doldurun.');
-            }
-        });
 
         loadAllProducts();
         searchProducts(); // Initial display

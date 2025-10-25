@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sipariş Takibi - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .order-item {
+            border: 1px solid #ff0000;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .button {
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 5px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Sipariş Takibi</i></h1>
+
+    <div class="section">
+        <h2>Gelen Siparişler</h2>
+        <div id="incomingOrders">
+            <!-- Incoming orders will be listed here -->
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Verilen Siparişler</h2>
+        <div id="outgoingOrders">
+            <!-- Outgoing orders will be listed here -->
+        </div>
+    </div>
+
+    <a href="#" class="button" onclick="goBack()">Panele Dön</a>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        const panel = currentUser.panel;
+
+        function loadIncomingOrders() {
+            const orders = JSON.parse(localStorage.getItem('orders')) || [];
+            let incomingOrders;
+            if (panel === 'ureticiler') {
+                incomingOrders = orders.filter(o => o.seller === currentUser.email && o.buyerPanel === 'toptancilar');
+            } else if (panel === 'hammadeciler') {
+                incomingOrders = orders.filter(o => o.seller === currentUser.email && o.buyerPanel === 'ureticiler');
+            } else if (panel === 'toptancilar') {
+                incomingOrders = orders.filter(o => o.seller === currentUser.email && o.buyerPanel === 'saticilar');
+            }
+            const incomingOrdersDiv = document.getElementById('incomingOrders');
+            incomingOrdersDiv.innerHTML = '';
+            if (incomingOrders.length === 0) {
+                incomingOrdersDiv.innerHTML = '<p>Gelen sipariş yok.</p>';
+                return;
+            }
+            incomingOrders.forEach(order => {
+                const item = document.createElement('div');
+                item.className = 'order-item';
+                item.innerHTML = `
+                    <p><strong>Ürün:</strong> ${order.product}</p>
+                    <p><strong>Miktar:</strong> ${order.quantity}</p>
+                    <p><strong>Fiyat:</strong> ${order.price} TL</p>
+                    <p><strong>Alıcı:</strong> ${order.buyer}</p>
+                    <p><strong>Durum:</strong> ${order.status}</p>
+                    <p><strong>Tarih:</strong> ${new Date(order.date).toLocaleString()}</p>
+                    <button class="button" onclick="updateOrderStatus('${order.id}', 'shipped')">Kargo Gönder</button>
+                    <button class="button" onclick="trackShipment('${order.id}')">Kargo Takibi</button>
+                `;
+                incomingOrdersDiv.appendChild(item);
+            });
+        }
+
+        function loadOutgoingOrders() {
+            const orders = JSON.parse(localStorage.getItem('orders')) || [];
+            let outgoingOrders;
+            if (panel === 'ureticiler') {
+                outgoingOrders = orders.filter(o => o.buyer === currentUser.email && o.sellerPanel === 'hammadeciler');
+            } else if (panel === 'hammadeciler') {
+                outgoingOrders = orders.filter(o => o.buyer === currentUser.email && o.sellerPanel === 'ureticiler');
+            } else if (panel === 'toptancilar') {
+                outgoingOrders = orders.filter(o => o.buyer === currentUser.email && o.sellerPanel === 'ureticiler');
+            }
+            const outgoingOrdersDiv = document.getElementById('outgoingOrders');
+            outgoingOrdersDiv.innerHTML = '';
+            if (outgoingOrders.length === 0) {
+                outgoingOrdersDiv.innerHTML = '<p>Verilen sipariş yok.</p>';
+                return;
+            }
+            outgoingOrders.forEach(order => {
+                const item = document.createElement('div');
+                item.className = 'order-item';
+                item.innerHTML = `
+                    <p><strong>Ürün:</strong> ${order.product}</p>
+                    <p><strong>Miktar:</strong> ${order.quantity}</p>
+                    <p><strong>Fiyat:</strong> ${order.price} TL</p>
+                    <p><strong>Satıcı:</strong> ${order.seller}</p>
+                    <p><strong>Durum:</strong> ${order.status}</p>
+                    <p><strong>Tarih:</strong> ${new Date(order.date).toLocaleString()}</p>
+                    <button class="button" onclick="trackShipment('${order.id}')">Kargo Takibi</button>
+                `;
+                outgoingOrdersDiv.appendChild(item);
+            });
+        }
+
+        function updateOrderStatus(orderId, status) {
+            const orders = JSON.parse(localStorage.getItem('orders')) || [];
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                order.status = status;
+                localStorage.setItem('orders', JSON.stringify(orders));
+                alert('Sipariş durumu güncellendi.');
+                loadIncomingOrders();
+            }
+        }
+
+        function trackShipment(orderId) {
+            const trackingNumber = prompt('Kargo takip numarası:');
+            if (trackingNumber) {
+                const orders = JSON.parse(localStorage.getItem('orders')) || [];
+                const order = orders.find(o => o.id === orderId);
+                if (order) {
+                    order.trackingNumber = trackingNumber;
+                    localStorage.setItem('orders', JSON.stringify(orders));
+                    alert('Kargo takip numarası eklendi.');
+                }
+            }
+        }
+
+        function goBack() {
+            if (panel === 'ureticiler') {
+                window.location.href = 'ureticiler-panel.html';
+            } else if (panel === 'hammadeciler') {
+                window.location.href = 'hammadeciler-panel.html';
+            } else if (panel === 'toptancilar') {
+                window.location.href = 'toptancilar-panel.html';
+            }
+        }
+
+        loadIncomingOrders();
+        loadOutgoingOrders();
+    </script>
+</body>
+</html>

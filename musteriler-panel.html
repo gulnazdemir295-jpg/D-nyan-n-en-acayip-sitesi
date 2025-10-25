@@ -77,6 +77,8 @@
         <a href="mesajlar.html?panel=musteriler" class="button">Mesajlar</a>
         <a href="uluslararasi-canli-izle.html" class="button">Uluslararası Canlı Yayın İzle</a>
         <a href="uluslararasi-siparis-takibi-musteri.html" class="button">Uluslararası Sipariş Takibi</a>
+        <a href="satici-ara.html" class="button">Satıcı Ara</a>
+        <a href="siparis-takibi.html" class="button">Sipariş Takibi</a>
     </div>
     <div class="main">
         <h1><i>Müşteriler Paneli</i></h1>
@@ -94,6 +96,29 @@
             </form>
             <div id="productList" style="margin-top: 20px;">
                 <!-- Products will be listed here -->
+            </div>
+        </div>
+
+        <div style="margin: 20px 0; padding: 20px; border: 1px solid #ff0000; border-radius: 5px;">
+            <h2>Alış Teklifi Hazırla</h2>
+            <form id="purchaseOfferForm">
+                <label>Satıcı Seç: <select id="supplierSelect" required>
+                    <option value="">Seçin</option>
+                </select></label><br>
+                <label>Ürün Seç: <select id="purchaseProductSelect" required>
+                    <option value="">Seçin</option>
+                </select></label><br>
+                <label>Miktar: <input type="number" id="purchaseQuantity" min="1" required></label><br>
+                <label>Fiyat Teklifi: <input type="number" step="0.01" id="purchasePrice" required></label><br>
+                <label>Not: <textarea id="purchaseNote" rows="3" placeholder="Ek notlar..."></textarea></label><br>
+                <button type="submit" class="button">Teklif Gönder</button>
+            </form>
+        </div>
+
+        <div style="margin: 20px 0; padding: 20px; border: 1px solid #ff0000; border-radius: 5px;">
+            <h2>Gelen Teklifler</h2>
+            <div id="incomingPurchaseOffers" style="margin-top: 20px;">
+                <!-- Incoming purchase offers will be listed here -->
             </div>
         </div>
 
@@ -177,7 +202,7 @@
         }
 
         function buyProduct(productName, sellerPanel) {
-            const quantity = document.getElementById(`qty-${productName}`).value;
+            const quantity = parseInt(document.getElementById(`qty-${productName}`).value);
             const products = JSON.parse(localStorage.getItem('products-' + sellerPanel)) || [];
             const product = products.find(p => p.name === productName);
             if (!product) {
@@ -185,13 +210,21 @@
                 return;
             }
             const totalPrice = product.price * quantity;
+
+            // If quantity > 5, require offer form
+            if (quantity > 5) {
+                alert('5 adetten fazla alım için alış teklifi formunu kullanın.');
+                return;
+            }
+
             const order = {
                 customer: currentUser.email,
                 sellerPanel: sellerPanel,
                 product: productName,
                 quantity: quantity,
                 totalPrice: totalPrice,
-                date: new Date().toISOString()
+                date: new Date().toISOString(),
+                status: 'pending'
             };
             const orders = JSON.parse(localStorage.getItem('orders')) || [];
             orders.push(order);
@@ -206,6 +239,7 @@
         loadAllProducts();
         searchProducts(); // Initial display
         loadSellers(); // Load sellers
+        loadIncomingPurchaseOffers();
 
         function loadSellers() {
             const approvedUsers = JSON.parse(localStorage.getItem('approved-users')) || [];
@@ -247,6 +281,124 @@
         function liveBroadcast(product) {
             alert(product + ' için canlı yayın açılıyor.');
         }
+        // Purchase Offer functionality
+        const approvedUsers = JSON.parse(localStorage.getItem('approved-users')) || [];
+        const suppliers = approvedUsers.filter(u => u.panel === 'saticilar');
+        const supplierSelect = document.getElementById('supplierSelect');
+        suppliers.forEach(supplier => {
+            const option = document.createElement('option');
+            option.value = supplier.email;
+            option.textContent = supplier.company || supplier.name;
+            supplierSelect.appendChild(option);
+        });
+
+        // For customers, they can select any product from sellers
+        const allSellerProducts = [];
+        suppliers.forEach(supplier => {
+            const products = JSON.parse(localStorage.getItem('products-saticilar')) || [];
+            allSellerProducts.push(...products);
+        });
+        const purchaseProductSelect = document.getElementById('purchaseProductSelect');
+        allSellerProducts.forEach(product => {
+            const option = document.createElement('option');
+            option.value = product.name;
+            option.textContent = product.name + ' (' + product.unit + ')';
+            purchaseProductSelect.appendChild(option);
+        });
+
+        document.getElementById('purchaseOfferForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const supplier = document.getElementById('supplierSelect').value;
+            const product = document.getElementById('purchaseProductSelect').value;
+            const quantity = parseInt(document.getElementById('purchaseQuantity').value);
+            const price = parseFloat(document.getElementById('purchasePrice').value);
+            const note = document.getElementById('purchaseNote').value;
+            if (supplier && product && quantity && price) {
+                const offer = {
+                    from: currentUser.email,
+                    to: supplier,
+                    product: product,
+                    quantity: quantity,
+                    price: price,
+                    note: note,
+                    status: 'pending',
+                    date: new Date().toISOString()
+                };
+                const offers = JSON.parse(localStorage.getItem('offers')) || [];
+                offers.push(offer);
+                localStorage.setItem('offers', JSON.stringify(offers));
+                alert('Alış teklifi gönderildi.');
+                this.reset();
+            } else {
+                alert('Lütfen tüm alanları doldurun.');
+            }
+        });
+
+        // Load incoming purchase offers
+        function loadIncomingPurchaseOffers() {
+            const offers = JSON.parse(localStorage.getItem('offers')) || [];
+            const incomingOffers = offers.filter(o => o.to === currentUser.email);
+            const incomingOffersDiv = document.getElementById('incomingPurchaseOffers');
+            incomingOffersDiv.innerHTML = '';
+            if (incomingOffers.length === 0) {
+                incomingOffersDiv.innerHTML = '<p>Gelen teklif yok.</p>';
+                return;
+            }
+            incomingOffers.forEach(offer => {
+                const item = document.createElement('div');
+                item.style.border = '1px solid #ff0000';
+                item.style.padding = '10px';
+                item.style.margin = '10px 0';
+                item.style.backgroundColor = '#ffffff';
+                item.style.color = '#000000';
+                item.style.borderRadius = '5px';
+                item.innerHTML = `
+                    <p><strong>Kimden:</strong> ${offer.from}</p>
+                    <p><strong>Ürün:</strong> ${offer.product}</p>
+                    <p><strong>Miktar:</strong> ${offer.quantity}</p>
+                    <p><strong>Fiyat:</strong> ${offer.price} TL</p>
+                    <p><strong>Not:</strong> ${offer.note || 'Yok'}</p>
+                    <p><strong>Durum:</strong> ${offer.status}</p>
+                    <button class="button" onclick="approvePurchaseOffer('${offer.from}', '${offer.product}', ${offer.quantity}, ${offer.price})">Onayla</button>
+                    <button class="button" onclick="rejectPurchaseOffer('${offer.from}', '${offer.product}')">Reddet</button>
+                `;
+                incomingOffersDiv.appendChild(item);
+            });
+        }
+
+        function approvePurchaseOffer(from, product, quantity, price) {
+            const offers = JSON.parse(localStorage.getItem('offers')) || [];
+            const offer = offers.find(o => o.from === from && o.product === product && o.quantity === quantity && o.price === price);
+            if (offer) {
+                offer.status = 'approved';
+                localStorage.setItem('offers', JSON.stringify(offers));
+                // Add to cart
+                const cart = JSON.parse(localStorage.getItem('cart')) || [];
+                cart.push({
+                    buyer: currentUser.email,
+                    seller: from,
+                    product: product,
+                    quantity: quantity,
+                    price: price,
+                    date: new Date().toISOString()
+                });
+                localStorage.setItem('cart', JSON.stringify(cart));
+                alert('Teklif onaylandı ve sepete eklendi.');
+                loadIncomingPurchaseOffers();
+            }
+        }
+
+        function rejectPurchaseOffer(from, product) {
+            const offers = JSON.parse(localStorage.getItem('offers')) || [];
+            const offer = offers.find(o => o.from === from && o.product === product);
+            if (offer) {
+                offer.status = 'rejected';
+                localStorage.setItem('offers', JSON.stringify(offers));
+                alert('Teklif reddedildi.');
+                loadIncomingPurchaseOffers();
+            }
+        }
+
         function updateStatus(orderId, newStatus) {
             document.getElementById('status-' + orderId).innerText = newStatus;
             alert('Sipariş ' + orderId + ' durumu güncellendi: ' + newStatus);

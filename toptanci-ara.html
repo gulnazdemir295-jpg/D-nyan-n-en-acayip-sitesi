@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toptancı Ara - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .button {
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        .buyer-card {
+            border: 1px solid #ff0000;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #ffffff;
+            color: #000000;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Toptancı Ara</i></h1>
+    <p>Toptancıları filtreleyin ve bulun.</p>
+
+    <form id="filterForm">
+        <label>Şirket Adı: <input type="text" id="companyFilter" placeholder="Şirket adı girin"></label>
+        <label>Şehir: <input type="text" id="cityFilter" placeholder="Şehir girin"></label>
+        <label>Bölge: <input type="text" id="regionFilter" placeholder="Bölge girin"></label>
+        <label>Ürün Kategorisi: <input type="text" id="categoryFilter" placeholder="Ürün kategorisi girin"></label>
+        <button type="button" class="button" onclick="filterBuyers()">Filtrele</button>
+    </form>
+
+    <div id="buyersList" style="margin-top: 20px;">
+        <!-- Filtered buyers will be listed here -->
+    </div>
+
+    <a href="ureticiler-panel.html" class="button">Panele Dön</a>
+
+    <script>
+        let allBuyers = [];
+
+        function loadAllBuyers() {
+            const approvedUsers = JSON.parse(localStorage.getItem('approved-users')) || [];
+            allBuyers = approvedUsers.filter(u => u.panel === 'toptancilar');
+        }
+
+        function filterBuyers() {
+            const company = document.getElementById('companyFilter').value.toLowerCase();
+            const city = document.getElementById('cityFilter').value.toLowerCase();
+            const region = document.getElementById('regionFilter').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value.toLowerCase();
+
+            const filtered = allBuyers.filter(b =>
+                (!company || (b.company && b.company.toLowerCase().includes(company))) &&
+                (!city || (b.city && b.city.toLowerCase().includes(city))) &&
+                (!region || (b.region && b.region.toLowerCase().includes(region))) &&
+                (!category || hasProductCategory(b.email, category))
+            );
+
+            displayBuyers(filtered);
+        }
+
+        function hasProductCategory(buyerEmail, category) {
+            const products = JSON.parse(localStorage.getItem('products-toptancilar')) || [];
+            return products.some(p => p.panel === 'toptancilar' && p.company === buyerEmail && p.category.toLowerCase().includes(category));
+        }
+
+        function displayBuyers(buyers) {
+            const buyersList = document.getElementById('buyersList');
+            buyersList.innerHTML = '';
+            if (buyers.length === 0) {
+                buyersList.innerHTML = '<p>Hiç toptancı bulunamadı.</p>';
+                return;
+            }
+            buyers.forEach(buyer => {
+                const card = document.createElement('div');
+                card.className = 'buyer-card';
+                card.innerHTML = `
+                    <h3>${buyer.company || buyer.name}</h3>
+                    <p>Şehir: ${buyer.city || 'Belirtilmemiş'}</p>
+                    <p>Bölge: ${buyer.region || 'Belirtilmemiş'}</p>
+                    <button class="button" onclick="inviteToBroadcast('${buyer.email}')">Canlı Yayına Davet Et</button>
+                    <button class="button" onclick="sendMessage('${buyer.email}')">Özel Mesaj Gönder</button>
+                    <button class="button" onclick="viewMessages('${buyer.email}')">Mesajları Görüntüle</button>
+                    <button class="button" onclick="sendOffer('${buyer.email}')">Teklif Formu Gönder</button>
+                    <button class="button" onclick="viewBuyerPage('${buyer.email}')">Sayfasını Görüntüle</button>
+                `;
+                buyersList.appendChild(card);
+            });
+        }
+
+        function inviteToBroadcast(buyerEmail) {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            const message = {
+                from: currentUser.email,
+                to: buyerEmail,
+                type: 'invitation',
+                content: 'Canlı yayınıma davet edildiniz.',
+                date: new Date().toISOString(),
+                read: false
+            };
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            messages.push(message);
+            localStorage.setItem('messages', JSON.stringify(messages));
+            alert('Davet gönderildi.');
+        }
+
+        function sendMessage(buyerEmail) {
+            const content = prompt('Mesajınızı yazın:');
+            if (content) {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+                const message = {
+                    from: currentUser.email,
+                    to: buyerEmail,
+                    type: 'message',
+                    content: content,
+                    date: new Date().toISOString(),
+                    read: false
+                };
+                const messages = JSON.parse(localStorage.getItem('messages')) || [];
+                messages.push(message);
+                localStorage.setItem('messages', JSON.stringify(messages));
+                alert('Mesaj gönderildi.');
+            }
+        }
+
+        function viewMessages(buyerEmail) {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            const myMessages = messages.filter(m => (m.from === currentUser.email && m.to === buyerEmail) || (m.to === currentUser.email && m.from === buyerEmail));
+            let html = '<h3>Mesajlar</h3>';
+            if (myMessages.length === 0) {
+                html += '<p>Henüz mesaj yok.</p>';
+            } else {
+                myMessages.forEach(msg => {
+                    html += `<div style="border: 1px solid #ff0000; padding: 10px; margin: 5px 0; background-color: #ffffff; color: #000000;">
+                        <p><strong>Kimden:</strong> ${msg.from}</p>
+                        <p><strong>İçerik:</strong> ${msg.content}</p>
+                        <p><strong>Tarih:</strong> ${new Date(msg.date).toLocaleString()}</p>
+                        <button class="button" onclick="replyMessage('${msg.from}')">Yanıtla</button>
+                    </div>`;
+                });
+            }
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+            modal.style.zIndex = '1000';
+            modal.innerHTML = `<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #000000; color: #ff0000; padding: 20px; border-radius: 5px; max-width: 600px; max-height: 80%; overflow-y: auto;">
+                ${html}
+                <button class="button" onclick="this.parentElement.parentElement.parentElement.remove()">Kapat</button>
+            </div>`;
+            document.body.appendChild(modal);
+        }
+
+        function replyMessage(toEmail) {
+            const content = prompt('Yanıtınızı yazın:');
+            if (content) {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+                const message = {
+                    from: currentUser.email,
+                    to: toEmail,
+                    type: 'message',
+                    content: content,
+                    date: new Date().toISOString(),
+                    read: false
+                };
+                const messages = JSON.parse(localStorage.getItem('messages')) || [];
+                messages.push(message);
+                localStorage.setItem('messages', JSON.stringify(messages));
+                alert('Yanıt gönderildi.');
+            }
+        }
+
+        function sendOffer(buyerEmail) {
+            const product = prompt('Ürün adı:');
+            const quantity = parseInt(prompt('Miktar:'));
+            const price = parseFloat(prompt('Fiyat teklifi:'));
+            const note = prompt('Not:');
+            if (product && quantity && price) {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+                const offer = {
+                    from: currentUser.email,
+                    to: buyerEmail,
+                    product: product,
+                    quantity: quantity,
+                    price: price,
+                    note: note,
+                    status: 'pending',
+                    date: new Date().toISOString()
+                };
+                const offers = JSON.parse(localStorage.getItem('offers')) || [];
+                offers.push(offer);
+                localStorage.setItem('offers', JSON.stringify(offers));
+                alert('Teklif gönderildi.');
+            } else {
+                alert('Lütfen tüm alanları doldurun.');
+            }
+        }
+
+        function viewBuyerPage(buyerEmail) {
+            window.location.href = 'toptanci-sayfasi.html?seller=' + encodeURIComponent(buyerEmail);
+        }
+
+        loadAllBuyers();
+        filterBuyers(); // Initial display
+    </script>
+</body>
+</html>

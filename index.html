@@ -106,6 +106,7 @@
 </head>
 <body>
     <h1><i>Dünyanın <span style="color:white;">B</span>i <span style="color:white;">A</span>cayip <span style="color:white;">S</span>itesi</i></h1>
+    <p style="font-size: 1.2em; margin: 20px 0;">Türkiye'nin en kapsamlı B2B e-ticaret platformu - Üreticilerden tüketicilere kadar tüm tedarik zinciri</p>
     <div class="button-container">
         <a href="hammadeciler-kayit.html" class="button">Hammadeciler Üye Ol</a>
         <a href="ureticiler-kayit.html" class="button">Üreticiler Üye Ol</a>
@@ -127,7 +128,7 @@
     </div>
     <div class="button-container" style="margin-top: 20px;">
         <a href="canli-izle.html" class="button">Şimdi Canlı İzle</a>
-        <a href="saticilar-panel.html" class="button">Hemen Canlı Yayında Sat</a>
+        <a href="canli-yayin-yap.html" class="button">Hemen Canlı Yayında Sat</a>
         <a href="tum-firma-haritasi.html" class="button">Türkiye Üretiyor Haritası</a>
         <a href="urun-ara.html" class="button">Ürün Ara</a>
         <a href="yoresel-lezzetler.html" class="button">Yöresel Lezzetler</a>
@@ -135,17 +136,20 @@
     </div>
 
     <div class="menu-container" style="margin-top: 50px; text-align: center;">
-        <h2>Satıcı Ürünlerine Erişim</h2>
-        <div class="menu-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 800px; margin: 0 auto;">
-            <a href="urun-ara.html?filter=kategori" class="button">Kategori Bazında</a>
-            <a href="canli-izle.html" class="button">Canlı Yayın Bazında</a>
-            <a href="tum-firma-haritasi.html" class="button">İl, İlçe, Bölge Bazında</a>
-            <a href="uluslararasi-canli-izle.html" class="button">Uluslararası Canlı Yayın Bazında</a>
-            <a href="uluslararasi-kategoriler.html" class="button">Uluslararası Kategoriler Bazında</a>
-            <a href="tum-firma-haritasi.html" class="button">Firmalar Bazında</a>
+        <h2>Platform Özellikleri</h2>
+        <div class="menu-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto;">
+            <a href="canli-izle.html" class="button">Canlı Yayın İzle</a>
+            <a href="canli-yayin-yap.html" class="button">Canlı Yayın Yap</a>
+            <a href="urun-ara.html" class="button">Ürün Ara</a>
+            <a href="tum-firma-haritasi.html" class="button">Firma Haritası</a>
+            <a href="mesajlar.html" class="button">Mesajlaşma</a>
+            <a href="siparis-takibi.html" class="button">Sipariş Takibi</a>
+            <a href="yoresel-lezzetler.html" class="button">Yöresel Lezzetler</a>
+            <a href="el-sanatlari.html" class="button">El Sanatları</a>
         </div>
     </div>
     <footer>
+        <p style="margin-bottom: 10px; font-size: 1.1em;">Türkiye'nin en büyük B2B ticaret platformu - Güvenli, hızlı ve etkili ticaret</p>
         <a href="hakkimizda.html">Hakkımızda</a> |
         <a href="sikca-sorulan-sorular.html">Sıkça Sorulan Sorular</a> |
         <a href="bizi-takip-edin.html">Bizi Takip Edin</a> |
@@ -176,6 +180,20 @@
                 };
                 localStorage.setItem('currentUser', JSON.stringify(testUser));
                 window.location.href = 'saticilar-panel.html';
+                return;
+            }
+
+            // Test user for toptancilar
+            if (identifier === 'test@toptanci.com' && password === 'test123') {
+                const testUser = {
+                    email: 'test@toptanci.com',
+                    name: 'Test Toptancı',
+                    company: 'Test Toptancı Şirketi',
+                    panel: 'toptancilar',
+                    tempPassword: 'test123'
+                };
+                localStorage.setItem('currentUser', JSON.stringify(testUser));
+                window.location.href = 'toptancilar-panel.html';
                 return;
             }
 

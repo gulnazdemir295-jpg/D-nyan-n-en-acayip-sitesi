@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canlı İzle (Offline) - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: -250px;
+            background-color: #ffffff;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+        }
+        .sidebar a {
+            padding: 8px 8px 8px 32px;
+            text-decoration: none;
+            font-size: 25px;
+            color: #ff0000;
+            display: block;
+            cursor: pointer;
+        }
+        .sidebar a:hover {
+            color: #cc0000;
+        }
+        .sidebar .closebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+        }
+        .openbtn {
+            font-size: 20px;
+            cursor: pointer;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 15px;
+            border: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+        }
+        .openbtn:hover {
+            background-color: #cc0000;
+        }
+        .main {
+            transition: margin-left .5s;
+            padding: 16px;
+            margin-left: 0;
+        }
+        .content {
+            display: none;
+            margin-top: 50px;
+        }
+        .content ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .content li {
+            background-color: #ffcccc;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .back-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .back-link:hover {
+            background-color: #cc0000;
+        }
+        .video-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        video {
+            width: 100%;
+            max-width: 640px;
+            border: 2px solid #ff0000;
+        }
+        .stream-info {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .chat {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ff0000;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .chat-message {
+            margin: 5px 0;
+        }
+        .chat-input {
+            width: 80%;
+            padding: 10px;
+            margin-right: 10px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 5px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <button class="openbtn" onclick="openNav()">☰ Menü Aç</button>
+    <a href="canli-yayin-ana.html" class="back-link">Ana Sayfa</a>
+
+    <div id="mySidebar" class="sidebar">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+        <a onclick="showContent('kategoriler')">Kategoriler</a>
+        <a onclick="showContent('canli')">Canlı Yayın Kategorisi</a>
+    </div>
+
+    <div id="main" class="main">
+        <h1>Canlı İzle (Offline Mod)</h1>
+        <p>Menüden bir seçenek seçin veya canlı yayınları görüntüleyin.</p>
+
+        <div style="margin: 20px 0; padding: 20px; border: 1px solid #ff0000; border-radius: 5px; background-color: #ffffff; color: #000000;">
+            <h2>Şu Anda Canlı Yayınlar</h2>
+            <div id="liveStreamsList">
+                <!-- Live streams will be loaded here -->
+            </div>
+        </div>
+
+        <div id="currentStream" style="display: none; margin: 20px 0; padding: 20px; border: 1px solid #ff0000; border-radius: 5px; background-color: #000000; color: #ffffff;">
+            <h2 id="streamTitle">Yayın Başlığı</h2>
+            <div class="video-container">
+                <video id="remoteVideo" autoplay></video>
+            </div>
+            <div class="stream-info">
+                <h3>Yayın Bilgileri</h3>
+                <p id="streamDetails"></p>
+                <p id="viewerCount"></p>
+            </div>
+            <div style="margin-top: 20px;">
+                <button class="button" onclick="likeStream()">Beğen</button>
+                <button class="button" onclick="addToFavorites()">Favorilere Ekle</button>
+                <button class="button" onclick="shareStream()">Paylaş</button>
+            </div>
+            <div style="margin-top: 10px;">
+                <input type="text" id="chatInput" placeholder="Mesajınızı yazın..." class="chat-input">
+                <button class="button" onclick="sendMessage()">Gönder</button>
+            </div>
+            <div class="chat" id="chatMessages">
+                <!-- Chat messages will be loaded here -->
+            </div>
+        </div>
+
+        <div id="kategoriler" class="content">
+            <h2>Normal Ürün Kategorileri</h2>
+            <ul>
+                <li>Elektronik</li>
+                <li>Giyim</li>
+                <li>Yiyecek</li>
+                <li>Ev Eşyaları</li>
+                <li>Spor</li>
+            </ul>
+        </div>
+        <div id="canli" class="content">
+            <h2>Canlı Yayında Olan Kategoriler</h2>
+            <ul>
+                <li>Canlı Elektronik</li>
+                <li>Canlı Giyim</li>
+                <li>Canlı Yiyecek</li>
+                <li>Canlı Ev Eşyaları</li>
+                <li>Canlı Spor</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let currentStream = null;
+        let chatMessages = [];
+
+        function openNav() {
+            document.getElementById("mySidebar").style.left = "0";
+            document.getElementById("main").style.marginLeft = "250px";
+        }
+
+        function closeNav() {
+            document.getElementById("mySidebar").style.left = "-250px";
+            document.getElementById("main").style.marginLeft = "0";
+        }
+
+        function showContent(id) {
+            var contents = document.getElementsByClassName('content');
+            for (var i = 0; i < contents.length; i++) {
+                contents[i].style.display = 'none';
+            }
+            document.getElementById(id).style.display = 'block';
+            closeNav();
+        }
+
+        function loadLiveStreams() {
+            const streams = JSON.parse(localStorage.getItem('liveStreams')) || [];
+            const liveStreams = streams.filter(s => s.status === 'live');
+            const container = document.getElementById('liveStreamsList');
+
+            if (liveStreams.length === 0) {
+                container.innerHTML = '<p>Şu anda canlı yayın yok. Yayın yapmak için <a href="canli-yayin-yap-offline.html">buraya tıklayın</a>.</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            liveStreams.forEach(stream => {
+                const item = document.createElement('div');
+                item.style.border = '1px solid #ff0000';
+                item.style.padding = '10px';
+                item.style.margin = '10px 0';
+                item.style.backgroundColor = '#f8f9fa';
+                item.style.borderRadius = '5px';
+                item.style.cursor = 'pointer';
+                item.innerHTML = `
+                    <h3>${stream.title}</h3>
+                    <p>Satıcı: ${stream.seller}</p>
+                    <p>İzleyici: ${stream.viewers}</p>
+                    <span style="color: red;">● Canlı</span>
+                `;
+                item.onclick = () => watchStream(stream);
+                container.appendChild(item);
+            });
+        }
+
+        function watchStream(stream) {
+            currentStream = stream;
+            document.getElementById('streamTitle').textContent = stream.title;
+            document.getElementById('streamDetails').innerHTML = `
+                <strong>Satıcı:</strong> ${stream.seller}<br>
+                <strong>Ürünler:</strong> ${stream.products ? stream.products.map(p => p.name).join(', ') : 'N/A'}<br>
+                <strong>Slogan:</strong> ${stream.slogan || 'N/A'}
+            `;
+            document.getElementById('viewerCount').textContent = `İzleyici: ${stream.viewers}`;
+
+            // Simulate video stream (in real app, this would be WebRTC)
+            const remoteVideo = document.getElementById('remoteVideo');
+            remoteVideo.src = 'data:video/mp4;base64,AAAAHGZ0eXBtcDQyAAACAGlzb21pc28yYXZjMQAAAAhmcmVlAAAGF21kYXQ='; // Placeholder
+
+            document.getElementById('currentStream').style.display = 'block';
+            loadChat();
+
+            // Simulate viewer count updates
+            setInterval(() => {
+                stream.viewers += Math.floor(Math.random() * 5);
+                document.getElementById('viewerCount').textContent = `İzleyici: ${stream.viewers}`;
+            }, 10000);
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (message && currentStream) {
+                const msg = { user: 'İzleyici', message: message, timestamp: new Date() };
+                chatMessages.push(msg);
+                displayChatMessage(msg);
+                input.value = '';
+
+                // Simulate broadcaster response
+                setTimeout(() => {
+                    const response = { user: 'Yayıncı', message: 'Teşekkürler mesajınız için!', timestamp: new Date() };
+                    chatMessages.push(response);
+                    displayChatMessage(response);
+                }, 2000);
+            }
+        }
+
+        function displayChatMessage(msg) {
+            const chatMessagesDiv = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'chat-message';
+            msgDiv.innerHTML = `<strong>${msg.user}:</strong> ${msg.message}`;
+            chatMessagesDiv.appendChild(msgDiv);
+            chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+        }
+
+        function loadChat() {
+            const chatMessagesDiv = document.getElementById('chatMessages');
+            chatMessagesDiv.innerHTML = '';
+            chatMessages.forEach(msg => displayChatMessage(msg));
+        }
+
+        function likeStream() {
+            if (currentStream) {
+                alert(`${currentStream.title} beğenildi!`);
+            }
+        }
+
+        function addToFavorites() {
+            if (currentStream) {
+                const favorites = JSON.parse(localStorage.getItem('userFavorites')) || [];
+                if (!favorites.find(f => f.id === currentStream.id)) {
+                    favorites.push(currentStream);
+                    localStorage.setItem('userFavorites', JSON.stringify(favorites));
+                    alert('Favorilere eklendi!');
+                } else {
+                    alert('Zaten favorilerde!');
+                }
+            }
+        }
+
+        function shareStream() {
+            if (currentStream) {
+                const url = window.location.href;
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Yayın linki kopyalandı!');
+                });
+            }
+        }
+
+        // Enter key for chat
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Load streams on page load
+        window.addEventListener('load', loadLiveStreams);
+    </script>
+</body>
+</html>

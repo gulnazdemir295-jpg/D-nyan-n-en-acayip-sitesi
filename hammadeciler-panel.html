@@ -71,12 +71,7 @@
         <p>Firma Adı: Hammadde Firması</p>
         <img src="logo.png" alt="Logo" style="width: 100px; height: auto;">
 
-        <!-- Yayın Süresi Sayacı -->
-        <div id="broadcastTimer" style="background-color: #ff0000; color: #ffffff; padding: 10px; margin: 10px 0; border-radius: 5px; text-align: center;">
-            <div>Kalan Süre</div>
-            <div id="remainingTime" style="font-size: 24px; font-weight: bold;">00:00:00</div>
-            <a href="canli-yayin-satin-al.html" style="color: #ffffff; text-decoration: underline; font-size: 12px;">Yeni süre ekle</a>
-        </div>
+
         <a href="urun-yonetimi.html?panel=hammadeciler" class="button">Ürün Yönetimi</a>
         <a href="urun-satis.html?panel=hammadeciler&customer=ureticiler" class="button">Üreticilere Sat</a>
         <a href="kampanya-yap.html?panel=hammadeciler" class="button">Kampanya Yap</a>
@@ -97,22 +92,38 @@
         <h1><i>Hammadeciler Paneli</i></h1>
         <p>Hammadeci işlemlerinizi buradan yönetin.</p>
 
+        <div style="margin: 20px 0; padding: 20px; border: 1px solid #ff0000; border-radius: 5px;">
+            <h2>Tüm Üreticileri Görüntüle</h2>
+            <div id="producersList" style="margin-top: 20px;">
+                <!-- Producers will be listed here -->
+            </div>
+        </div>
+
         <div style="margin: 20px 0;">
             <a href="urun-ekle.html?panel=hammadeciler" class="button">Ürün Ekle</a>
         </div>
 
         <div style="margin: 20px 0; padding: 20px; border: 1px solid #ff0000; border-radius: 5px;">
-            <h2>Numune Anlaşması Öner</h2>
-            <form id="sampleAgreementForm">
-                <label>Satıcı Seç: <select id="sellerSelect" required>
+            <h2>Teklif Formu Hazırla</h2>
+            <form id="offerForm">
+                <label>Üretici Seç: <select id="producerSelect" required>
                     <option value="">Seçin</option>
                 </select></label><br>
-                <label>Numune Ürün Seç: <select id="sampleProductSelect" required>
+                <label>Ürün Seç: <select id="offerProductSelect" required>
                     <option value="">Seçin</option>
                 </select></label><br>
-                <label>Komisyon Oranı (%): <input type="number" step="0.01" id="agreementCommissionRate" min="0" max="100" required></label><br>
-                <button type="submit" class="button">Öneri Gönder</button>
+                <label>Miktar: <input type="number" id="offerQuantity" min="1" required></label><br>
+                <label>Fiyat Teklifi: <input type="number" step="0.01" id="offerPrice" required></label><br>
+                <label>Not: <textarea id="offerNote" rows="3" placeholder="Ek notlar..."></textarea></label><br>
+                <button type="submit" class="button">Teklif Gönder</button>
             </form>
+        </div>
+
+        <div style="margin: 20px 0; padding: 20px; border: 1px solid #ff0000; border-radius: 5px;">
+            <h2>Gelen Teklifler</h2>
+            <div id="incomingOffers" style="margin-top: 20px;">
+                <!-- Incoming offers will be listed here -->
+            </div>
         </div>
 
 
@@ -123,51 +134,119 @@
     </div>
 
     <script>
-        // Sample Agreement functionality
+        // Offer functionality
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        const users = JSON.parse(localStorage.getItem('users')) || [];
-        const sellers = users.filter(u => u.panel === 'saticilar');
-        const sellerSelect = document.getElementById('sellerSelect');
-        sellers.forEach(seller => {
+        const approvedUsers = JSON.parse(localStorage.getItem('approved-users')) || [];
+        const producers = approvedUsers.filter(u => u.panel === 'ureticiler');
+        const producerSelect = document.getElementById('producerSelect');
+        producers.forEach(producer => {
             const option = document.createElement('option');
-            option.value = seller.email;
-            option.textContent = seller.company || seller.name;
-            sellerSelect.appendChild(option);
+            option.value = producer.email;
+            option.textContent = producer.company || producer.name;
+            producerSelect.appendChild(option);
         });
 
         const ownProducts = JSON.parse(localStorage.getItem('products-hammadeciler')) || [];
-        const sampleProducts = ownProducts.filter(p => p.isSample);
-        const sampleProductSelect = document.getElementById('sampleProductSelect');
-        sampleProducts.forEach(product => {
+        const offerProductSelect = document.getElementById('offerProductSelect');
+        ownProducts.forEach(product => {
             const option = document.createElement('option');
             option.value = product.name;
-            option.textContent = product.name + ' (' + product.commissionRate + '%)';
-            sampleProductSelect.appendChild(option);
+            option.textContent = product.name + ' (' + product.unit + ')';
+            offerProductSelect.appendChild(option);
         });
 
-        document.getElementById('sampleAgreementForm').addEventListener('submit', function(event) {
+        document.getElementById('offerForm').addEventListener('submit', function(event) {
             event.preventDefault();
-            const seller = document.getElementById('sellerSelect').value;
-            const product = document.getElementById('sampleProductSelect').value;
-            const commissionRate = parseFloat(document.getElementById('agreementCommissionRate').value);
-            if (seller && product && commissionRate) {
-                const agreement = {
-                    supplier: currentUser.email,
-                    seller: seller,
+            const producer = document.getElementById('producerSelect').value;
+            const product = document.getElementById('offerProductSelect').value;
+            const quantity = parseInt(document.getElementById('offerQuantity').value);
+            const price = parseFloat(document.getElementById('offerPrice').value);
+            const note = document.getElementById('offerNote').value;
+            if (producer && product && quantity && price) {
+                const offer = {
+                    from: currentUser.email,
+                    to: producer,
                     product: product,
-                    commissionRate: commissionRate,
+                    quantity: quantity,
+                    price: price,
+                    note: note,
                     status: 'pending',
                     date: new Date().toISOString()
                 };
-                const agreements = JSON.parse(localStorage.getItem('sampleAgreements')) || [];
-                agreements.push(agreement);
-                localStorage.setItem('sampleAgreements', JSON.stringify(agreements));
-                alert('Numune anlaşması önerisi gönderildi.');
+                const offers = JSON.parse(localStorage.getItem('offers')) || [];
+                offers.push(offer);
+                localStorage.setItem('offers', JSON.stringify(offers));
+                alert('Teklif gönderildi.');
                 this.reset();
             } else {
                 alert('Lütfen tüm alanları doldurun.');
             }
         });
+
+        // Load incoming offers
+        function loadIncomingOffers() {
+            const offers = JSON.parse(localStorage.getItem('offers')) || [];
+            const incomingOffers = offers.filter(o => o.to === currentUser.email);
+            const incomingOffersDiv = document.getElementById('incomingOffers');
+            incomingOffersDiv.innerHTML = '';
+            if (incomingOffers.length === 0) {
+                incomingOffersDiv.innerHTML = '<p>Gelen teklif yok.</p>';
+                return;
+            }
+            incomingOffers.forEach(offer => {
+                const item = document.createElement('div');
+                item.style.border = '1px solid #ff0000';
+                item.style.padding = '10px';
+                item.style.margin = '10px 0';
+                item.style.backgroundColor = '#ffffff';
+                item.style.color = '#000000';
+                item.style.borderRadius = '5px';
+                item.innerHTML = `
+                    <p><strong>Kimden:</strong> ${offer.from}</p>
+                    <p><strong>Ürün:</strong> ${offer.product}</p>
+                    <p><strong>Miktar:</strong> ${offer.quantity}</p>
+                    <p><strong>Fiyat:</strong> ${offer.price} TL</p>
+                    <p><strong>Not:</strong> ${offer.note || 'Yok'}</p>
+                    <p><strong>Durum:</strong> ${offer.status}</p>
+                    <button class="button" onclick="approveOffer('${offer.from}', '${offer.product}', ${offer.quantity}, ${offer.price})">Onayla</button>
+                    <button class="button" onclick="rejectOffer('${offer.from}', '${offer.product}')">Reddet</button>
+                `;
+                incomingOffersDiv.appendChild(item);
+            });
+        }
+
+        function approveOffer(from, product, quantity, price) {
+            const offers = JSON.parse(localStorage.getItem('offers')) || [];
+            const offer = offers.find(o => o.from === from && o.product === product && o.quantity === quantity && o.price === price);
+            if (offer) {
+                offer.status = 'approved';
+                localStorage.setItem('offers', JSON.stringify(offers));
+                // Add to cart
+                const cart = JSON.parse(localStorage.getItem('cart')) || [];
+                cart.push({
+                    buyer: currentUser.email,
+                    seller: from,
+                    product: product,
+                    quantity: quantity,
+                    price: price,
+                    date: new Date().toISOString()
+                });
+                localStorage.setItem('cart', JSON.stringify(cart));
+                alert('Teklif onaylandı ve sepete eklendi.');
+                loadIncomingOffers();
+            }
+        }
+
+        function rejectOffer(from, product) {
+            const offers = JSON.parse(localStorage.getItem('offers')) || [];
+            const offer = offers.find(o => o.from === from && o.product === product);
+            if (offer) {
+                offer.status = 'rejected';
+                localStorage.setItem('offers', JSON.stringify(offers));
+                alert('Teklif reddedildi.');
+                loadIncomingOffers();
+            }
+        }
 
         function editProduct(product) {
             alert(product + ' düzenleniyor.');
@@ -183,47 +262,122 @@
             alert('Sipariş ' + orderId + ' durumu güncellendi: ' + newStatus);
         }
 
-        // Yayın süresi sayacı
-        let broadcastTimeRemaining = 0; // saniye cinsinden
-        let timerInterval;
 
-        function startBroadcastTimer() {
-            // localStorage'dan kalan süreyi al (varsayılan 0)
-            broadcastTimeRemaining = parseInt(localStorage.getItem('broadcastTimeRemaining') || '0');
 
-            if (broadcastTimeRemaining > 0) {
-                updateTimerDisplay();
-                timerInterval = setInterval(() => {
-                    broadcastTimeRemaining--;
-                    updateTimerDisplay();
+        // Load producers
+        function loadProducers() {
+            const approvedUsers = JSON.parse(localStorage.getItem('approved-users')) || [];
+            const producers = approvedUsers.filter(u => u.panel === 'ureticiler');
+            const producersList = document.getElementById('producersList');
+            producersList.innerHTML = '';
+            if (producers.length === 0) {
+                producersList.innerHTML = '<p>Henüz üretici yok.</p>';
+                return;
+            }
+            producers.forEach(producer => {
+                const card = document.createElement('div');
+                card.style.border = '1px solid #ff0000';
+                card.style.padding = '10px';
+                card.style.margin = '10px 0';
+                card.style.backgroundColor = '#ffffff';
+                card.style.color = '#000000';
+                card.style.borderRadius = '5px';
+                card.innerHTML = `
+                    <h3>${producer.company || producer.name}</h3>
+                    <p>Şehir: ${producer.city || 'Belirtilmemiş'}</p>
+                    <p>Bölge: ${producer.region || 'Belirtilmemiş'}</p>
+                    <button class="button" onclick="inviteToBroadcast('${producer.email}')">Canlı Yayına Davet Et</button>
+                    <button class="button" onclick="sendMessage('${producer.email}')">Özel Mesaj Gönder</button>
+                    <button class="button" onclick="viewMessages('${producer.email}')">Mesajları Görüntüle</button>
+                `;
+                producersList.appendChild(card);
+            });
+        }
 
-                    if (broadcastTimeRemaining <= 0) {
-                        clearInterval(timerInterval);
-                        alert('Yayın süreniz doldu!');
-                        // Yayın durdurma işlemi burada yapılabilir
-                    }
+        function inviteToBroadcast(producerEmail) {
+            const message = {
+                from: currentUser.email,
+                to: producerEmail,
+                type: 'invitation',
+                content: 'Canlı yayınıma davet edildiniz.',
+                date: new Date().toISOString(),
+                read: false
+            };
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            messages.push(message);
+            localStorage.setItem('messages', JSON.stringify(messages));
+            alert('Davet gönderildi.');
+        }
 
-                    // Her dakika localStorage'a kaydet
-                    if (broadcastTimeRemaining % 60 === 0) {
-                        localStorage.setItem('broadcastTimeRemaining', broadcastTimeRemaining.toString());
-                    }
-                }, 1000);
+        function sendMessage(producerEmail) {
+            const content = prompt('Mesajınızı yazın:');
+            if (content) {
+                const message = {
+                    from: currentUser.email,
+                    to: producerEmail,
+                    type: 'message',
+                    content: content,
+                    date: new Date().toISOString(),
+                    read: false
+                };
+                const messages = JSON.parse(localStorage.getItem('messages')) || [];
+                messages.push(message);
+                localStorage.setItem('messages', JSON.stringify(messages));
+                alert('Mesaj gönderildi.');
             }
         }
 
-        function updateTimerDisplay() {
-            const hours = Math.floor(broadcastTimeRemaining / 3600);
-            const minutes = Math.floor((broadcastTimeRemaining % 3600) / 60);
-            const seconds = broadcastTimeRemaining % 60;
-
-            document.getElementById('remainingTime').textContent =
-                String(hours).padStart(2, '0') + ':' +
-                String(minutes).padStart(2, '0') + ':' +
-                String(seconds).padStart(2, '0');
+        function viewMessages(producerEmail) {
+            const messages = JSON.parse(localStorage.getItem('messages')) || [];
+            const myMessages = messages.filter(m => (m.from === currentUser.email && m.to === producerEmail) || (m.to === currentUser.email && m.from === producerEmail));
+            let html = '<h3>Mesajlar</h3>';
+            if (myMessages.length === 0) {
+                html += '<p>Henüz mesaj yok.</p>';
+            } else {
+                myMessages.forEach(msg => {
+                    html += `<div style="border: 1px solid #ff0000; padding: 10px; margin: 5px 0; background-color: #ffffff; color: #000000;">
+                        <p><strong>Kimden:</strong> ${msg.from}</p>
+                        <p><strong>İçerik:</strong> ${msg.content}</p>
+                        <p><strong>Tarih:</strong> ${new Date(msg.date).toLocaleString()}</p>
+                        <button class="button" onclick="replyMessage('${msg.from}')">Yanıtla</button>
+                    </div>`;
+                });
+            }
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+            modal.style.zIndex = '1000';
+            modal.innerHTML = `<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #000000; color: #ff0000; padding: 20px; border-radius: 5px; max-width: 600px; max-height: 80%; overflow-y: auto;">
+                ${html}
+                <button class="button" onclick="this.parentElement.parentElement.remove()">Kapat</button>
+            </div>`;
+            document.body.appendChild(modal);
         }
 
-        // Sayfa yüklendiğinde timer'ı başlat
-        window.addEventListener('load', startBroadcastTimer);
+        function replyMessage(toEmail) {
+            const content = prompt('Yanıtınızı yazın:');
+            if (content) {
+                const message = {
+                    from: currentUser.email,
+                    to: toEmail,
+                    type: 'message',
+                    content: content,
+                    date: new Date().toISOString(),
+                    read: false
+                };
+                const messages = JSON.parse(localStorage.getItem('messages')) || [];
+                messages.push(message);
+                localStorage.setItem('messages', JSON.stringify(messages));
+                alert('Yanıt gönderildi.');
+            }
+        }
+
+        loadProducers();
+        loadIncomingOffers();
     </script>
 </body>
 </html>

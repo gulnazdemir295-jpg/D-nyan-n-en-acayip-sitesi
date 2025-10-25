@@ -148,7 +148,7 @@
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="http://localhost:3001/socket.io/socket.io.js"></script>
     <script>
         const socket = io('http://localhost:3001'); // Connect to live stream server
         let consumerTransport;
@@ -232,7 +232,7 @@
 
                     // Create consumer transport
                     socket.emit('createConsumerTransport', async (transportParams) => {
-                        consumerTransport = device.createRecvTransport(transportParams);
+                        consumerTransport = device.createWebRtcTransport(transportParams);
 
                         consumerTransport.on('connect', async ({ dtlsParameters }, callback) => {
                             socket.emit('connectConsumerTransport', { dtlsParameters }, callback);
@@ -263,23 +263,32 @@
             });
         }
 
+        function loadChat() {
+            chatMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+            displayChatMessages();
+        }
+
         function sendMessage() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
             if (message) {
                 const msg = { user: 'İzleyici', message: message, timestamp: new Date() };
                 chatMessages.push(msg);
-                displayChatMessage(msg);
+                localStorage.setItem('chatMessages', JSON.stringify(chatMessages));
+                displayChatMessages();
                 input.value = '';
             }
         }
 
-        function displayChatMessage(msg) {
+        function displayChatMessages() {
             const chatMessagesDiv = document.getElementById('chatMessages');
-            const msgDiv = document.createElement('div');
-            msgDiv.style.margin = '5px 0';
-            msgDiv.innerHTML = `<strong>${msg.user}:</strong> ${msg.message}`;
-            chatMessagesDiv.appendChild(msgDiv);
+            chatMessagesDiv.innerHTML = '';
+            chatMessages.forEach(msg => {
+                const msgDiv = document.createElement('div');
+                msgDiv.style.margin = '5px 0';
+                msgDiv.innerHTML = `<strong>${msg.user}:</strong> ${msg.message}`;
+                chatMessagesDiv.appendChild(msgDiv);
+            });
             chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
         }
 

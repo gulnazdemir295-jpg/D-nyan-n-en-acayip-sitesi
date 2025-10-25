@@ -85,9 +85,37 @@
     <label for="slogan">Slogan / Cümleler (Yayın altında görünecek):</label><br>
     <textarea id="slogan" rows="4" placeholder="Sloganınızı yazın..."></textarea><br>
 
-    <button class="button" onclick="startBroadcast()" id="broadcastBtn">Bas Sat</button>
+    <button class="button" onclick="showRules()" id="broadcastBtn">Bas Sat</button>
     <a href="canli-yayin-satin-al.html" class="button">Süre Ekle</a>
     <a href="toptancilar-panel.html" class="button">Geri</a>
+
+    <!-- Canlı Yayın Kuralları Modal -->
+    <div id="rulesModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 1000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #ffffff; color: #000000; padding: 20px; border-radius: 10px; max-width: 600px; width: 90%;">
+            <h2 style="color: #ff0000;">Canlı Yayın Kuralları ve Prosedürleri</h2>
+            <div style="text-align: left; margin: 20px 0;">
+                <h3>Kurallar:</h3>
+                <ul>
+                    <li>Yayın süresi boyunca uygun ve yasal içerik yayınlayın.</li>
+                    <li>Ürünlerinizi dürüstçe tanıtın, yanlış bilgi vermeyin.</li>
+                    <li>İzleyicilere saygılı olun, hakaret veya uygunsuz davranışlardan kaçının.</li>
+                    <li>Yayın sırasında kişisel bilgiler paylaşmayın.</li>
+                    <li>Platform kurallarına uymayan içerik yayınlamayın.</li>
+                </ul>
+                <h3>Prosedürler:</h3>
+                <ol>
+                    <li>Canlı yayında satılacak ürünleri seçin (en az bir ürün zorunlu).</li>
+                    <li>Sloganınızı yazın (yayın altında görünecek).</li>
+                    <li>Yayın sürenizi kontrol edin (yoksa süre satın alın).</li>
+                    <li>Kamera ve mikrofon erişimine izin verin.</li>
+                    <li>Yayın başlatın ve izleyicilerle etkileşimde bulunun.</li>
+                    <li>Yayın süresi dolunca otomatik olarak durdurulur.</li>
+                </ol>
+            </div>
+            <button class="button" onclick="acceptRules()">Kuralları Kabul Et ve Yayın Başlat</button>
+            <button class="button" onclick="closeRules()" style="background-color: #666;">İptal</button>
+        </div>
+    </div>
 
     <div id="subtitles"></div>
 
@@ -148,6 +176,19 @@
 
         // Sayfa yüklendiğinde ürünleri yükle
         window.addEventListener('load', loadUserProducts);
+
+        function showRules() {
+            document.getElementById('rulesModal').style.display = 'block';
+        }
+
+        function closeRules() {
+            document.getElementById('rulesModal').style.display = 'none';
+        }
+
+        function acceptRules() {
+            closeRules();
+            startBroadcast();
+        }
 
         let localStream;
         let producerTransport;

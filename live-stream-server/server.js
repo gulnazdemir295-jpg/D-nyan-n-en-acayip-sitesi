@@ -2,76 +2,98 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const mediasoup = require('mediasoup');
-const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: ["http://localhost:8000", "http://127.0.0.1:8000", "file://"],
-        methods: ["GET", "POST"],
-        transports: ['polling', 'websocket']
+        origin: "*",
+        methods: ["GET", "POST"]
     }
 });
 
 // Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 
+// Global variables
 let worker;
 let router;
 let producerTransport;
 let consumerTransports = new Map();
 let producers = new Map();
+let rooms = new Map(); // Room-based broadcasting
+
+const mediaCodecs = [
+    {
+        kind: 'audio',
+        mimeType: 'audio/opus',
+        clockRate: 48000,
+        channels: 2,
+    },
+    {
+        kind: 'video',
+        mimeType: 'video/VP8',
+        clockRate: 90000,
+        parameters: {
+            'x-google-start-bitrate': 1000,
+        },
+    },
+];
 
 async function createWorker() {
     worker = await mediasoup.createWorker({
         logLevel: 'warn',
-        logTags: ['info', 'ice', 'dtls', 'rtp', 'srtp', 'rtcp'],
-        rtcMinPort: 10000,
-        rtcMaxPort: 10100,
+        rtcMinPort: 20000,
+        rtcMaxPort: 20200,
     });
 
-    console.log('Mediasoup worker created');
+    console.log('Worker created, PID:', worker.pid);
 
     worker.on('died', () => {
-        console.error('Mediasoup worker died, exiting...');
-        process.exit(1);
+        console.error('Mediasoup worker died');
+        setTimeout(() => process.exit(1), 2000);
     });
 
     return worker;
 }
 
 async function createRouter() {
-    router = await worker.createRouter({
-        mediaCodecs: [
-            {
-                kind: 'audio',
-                mimeType: 'audio/opus',
-                clockRate: 48000,
-                channels: 2,
-            },
-            {
-                kind: 'video',
-                mimeType: 'video/VP8',
-                clockRate: 90000,
-                parameters: {
-                    'x-google-start-bitrate': 1000,
-                },
-            },
-        ],
-    });
-
+    router = await worker.createRouter({ mediaCodecs });
     console.log('Router created');
     return router;
 }
 
-io.on('connection', async (socket) => {
+async function init() {
+    try {
+        await createWorker();
+        await createRouter();
+        console.log('Mediasoup initialized successfully');
+    } catch (error) {
+        console.error('Failed to initialize Mediasoup:', error);
+        process.exit(1);
+    }
+}
+
+init();
+
+io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
 
+    socket.on('disconnect', () => {
+        console.log('Client disconnected:', socket.id);
+        // Clean up consumer transports
+        if (consumerTransports.has(socket.id)) {
+            consumerTransports.get(socket.id).close();
+            consumerTransports.delete(socket.id);
+        }
+    });
+
+    // Get router RTP capabilities
     socket.on('getRouterRtpCapabilities', (callback) => {
         callback(router.rtpCapabilities);
     });
 
+    // Create producer transport
     socket.on('createProducerTransport', async (callback) => {
         try {
             const transport = await router.createWebRtcTransport({
@@ -101,6 +123,7 @@ io.on('connection', async (socket) => {
         }
     });
 
+    // Connect producer transport
     socket.on('connectProducerTransport', async ({ dtlsParameters }, callback) => {
         try {
             await producerTransport.connect({ dtlsParameters });
@@ -111,6 +134,7 @@ io.on('connection', async (socket) => {
         }
     });
 
+    // Produce media
     socket.on('produce', async ({ kind, rtpParameters }, callback) => {
         try {
             const producer = await producerTransport.produce({ kind, rtpParameters });
@@ -129,6 +153,7 @@ io.on('connection', async (socket) => {
         }
     });
 
+    // Create consumer transport
     socket.on('createConsumerTransport', async (callback) => {
         try {
             const transport = await router.createWebRtcTransport({
@@ -159,6 +184,7 @@ io.on('connection', async (socket) => {
         }
     });
 
+    // Connect consumer transport
     socket.on('connectConsumerTransport', async ({ dtlsParameters }, callback) => {
         try {
             const transport = consumerTransports.get(socket.id);
@@ -170,13 +196,15 @@ io.on('connection', async (socket) => {
         }
     });
 
+    // Consume media
     socket.on('consume', async ({ producerId }, callback) => {
         try {
             const transport = consumerTransports.get(socket.id);
             const producer = Array.from(producers.values()).find(p => p.id === producerId);
 
             if (!producer) {
-                return callback({ error: 'Producer not found' });
+                callback({ error: 'Producer not found' });
+                return;
             }
 
             const consumer = await transport.consume({
@@ -206,18 +234,11 @@ io.on('connection', async (socket) => {
         }
     });
 
-    socket.on('getProducers', (callback) => {
-        const producerList = Array.from(producers.values()).map(p => ({
-            id: p.id,
-            kind: p.kind
-        }));
-        callback(producerList);
-    });
-
+    // Resume consumer
     socket.on('resumeConsumer', async ({ consumerId }, callback) => {
         try {
             const transport = consumerTransports.get(socket.id);
-            const consumer = transport.consumers.find(c => c.id === consumerId);
+            const consumer = transport._getConsumer(consumerId);
 
             if (consumer) {
                 await consumer.resume();
@@ -231,29 +252,17 @@ io.on('connection', async (socket) => {
         }
     });
 
-    socket.on('disconnect', () => {
-        console.log('Client disconnected:', socket.id);
-        const transport = consumerTransports.get(socket.id);
-        if (transport) {
-            transport.close();
-            consumerTransports.delete(socket.id);
-        }
-        const producer = producers.get(socket.id);
-        if (producer) {
-            producer.close();
-            producers.delete(socket.id);
-        }
+    // Get available producers
+    socket.on('getProducers', (callback) => {
+        const producerList = Array.from(producers.values()).map(producer => ({
+            id: producer.id,
+            kind: producer.kind,
+        }));
+        callback(producerList);
     });
 });
 
-async function startServer() {
-    await createWorker();
-    await createRouter();
-
-    const PORT = process.env.PORT || 3001;
-    server.listen(PORT, () => {
-        console.log(`Live streaming server running on port ${PORT}`);
-    });
-}
-
-startServer().catch(console.error);
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, () => {
+    console.log(`Live stream server running on port ${PORT}`);
+});

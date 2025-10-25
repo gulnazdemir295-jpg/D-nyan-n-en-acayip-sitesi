@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Ürün Ekleme - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        input, select, textarea {
+            padding: 10px;
+            margin: 10px;
+            width: 300px;
+        }
+        .product-list {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 5px;
+            width: 600px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Test Ürün Ekleme</i></h1>
+    <p>Test için toptancı paneline ürün ekleyin.</p>
+
+    <form id="productForm">
+        <label>Ürün Adı: <input type="text" id="productName" required></label><br>
+        <label>Fiyat: <input type="number" step="0.01" id="productPrice" required></label><br>
+        <label>Stok: <input type="number" id="productStock" required></label><br>
+        <label>Kategori: <input type="text" id="productCategory" required></label><br>
+        <label>Açıklama: <textarea id="productDescription" rows="3"></textarea></label><br>
+        <button type="submit" class="button">Ürün Ekle</button>
+    </form>
+
+    <div class="product-list">
+        <h3>Mevcut Ürünler</h3>
+        <div id="productList"></div>
+    </div>
+
+    <a href="toptancilar-panel.html" class="button">Toptancı Paneline Dön</a>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser')) || { email: 'test@toptancilar.com', panel: 'toptancilar' };
+
+        function loadProducts() {
+            const products = JSON.parse(localStorage.getItem('products-toptancilar')) || [];
+            const userProducts = products.filter(p => p.owner === currentUser.email);
+            const productList = document.getElementById('productList');
+
+            if (userProducts.length === 0) {
+                productList.innerHTML = '<p>Henüz ürün eklenmemiş.</p>';
+                return;
+            }
+
+            productList.innerHTML = '';
+            userProducts.forEach(product => {
+                const item = document.createElement('div');
+                item.style.border = '1px solid #ff0000';
+                item.style.padding = '10px';
+                item.style.margin = '5px 0';
+                item.innerHTML = `
+                    <strong>${product.name}</strong> - ${product.price} TL
+                    <br>Stok: ${product.stock} | Kategori: ${product.category}
+                    <br>Açıklama: ${product.description || 'Yok'}
+                `;
+                productList.appendChild(item);
+            });
+        }
+
+        document.getElementById('productForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const product = {
+                name: document.getElementById('productName').value,
+                price: parseFloat(document.getElementById('productPrice').value),
+                stock: parseInt(document.getElementById('productStock').value),
+                category: document.getElementById('productCategory').value,
+                description: document.getElementById('productDescription').value,
+                owner: currentUser.email,
+                dateAdded: new Date().toISOString()
+            };
+
+            const products = JSON.parse(localStorage.getItem('products-toptancilar')) || [];
+            products.push(product);
+            localStorage.setItem('products-toptancilar', JSON.stringify(products));
+
+            alert('Ürün eklendi!');
+            this.reset();
+            loadProducts();
+        });
+
+        // Sayfa yüklendiğinde ürünleri göster
+        window.addEventListener('load', loadProducts);
+    </script>
+</body>
+</html>

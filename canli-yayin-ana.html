@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canlı Yayın Ana Sayfa - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .menu {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        .live-streams {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .stream-item {
+            border: 1px solid #ff0000;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .stream-item:hover {
+            background-color: #f0f0f0;
+        }
+        .stream-item.live {
+            border-color: #00ff00;
+        }
+        .stream-item.live::after {
+            content: " ● Canlı";
+            color: #00ff00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Canlı Yayın Ana Sayfa</i></h1>
+    <p>Canlı yayın sistemine hoş geldiniz. Aşağıdaki menüden istediğiniz işlemi seçebilirsiniz.</p>
+
+    <div class="menu">
+        <h2>Menü</h2>
+        <a href="canli-yayin-yap-offline.html" class="button">Yayın Yap</a>
+        <a href="canli-izle-offline.html" class="button">Yayın İzle</a>
+        <a href="canli-yayin-yonetimi.html" class="button">Yayın Yönetimi</a>
+        <a href="canli-yayin-satin-al.html" class="button">Yayın Süresi Satın Al</a>
+        <a href="uluslararasi-canli-izle-offline.html" class="button">Uluslararası Yayın İzle</a>
+        <a href="uluslararasi-canli-yayin-yap-offline.html" class="button">Uluslararası Yayın Yap</a>
+    </div>
+
+    <div class="live-streams">
+        <h2>Şu Anda Canlı Yayınlar</h2>
+        <div id="liveStreamsList">
+            <!-- Live streams will be loaded here -->
+        </div>
+    </div>
+
+    <a href="index.html" class="button">Ana Sayfa</a>
+
+    <script>
+        function loadLiveStreams() {
+            const streams = JSON.parse(localStorage.getItem('liveStreams')) || [
+                { id: 1, title: 'Ürün Tanıtımı', seller: 'Toptancı A', viewers: 150, status: 'live', startTime: new Date().toISOString() },
+                { id: 2, title: 'Yeni Ürünler', seller: 'Toptancı B', viewers: 89, status: 'live', startTime: new Date().toISOString() },
+                { id: 3, title: 'İndirimli Satış', seller: 'Toptancı C', viewers: 234, status: 'ended', startTime: new Date(Date.now() - 3600000).toISOString() }
+            ];
+
+            const liveStreams = streams.filter(s => s.status === 'live');
+            const container = document.getElementById('liveStreamsList');
+
+            if (liveStreams.length === 0) {
+                container.innerHTML = '<p>Şu anda canlı yayın yok.</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            liveStreams.forEach(stream => {
+                const item = document.createElement('div');
+                item.className = 'stream-item live';
+                item.onclick = () => watchStream(stream.id);
+                item.innerHTML = `
+                    <h3>${stream.title}</h3>
+                    <p>Satıcı: ${stream.seller}</p>
+                    <p>İzleyici: ${stream.viewers}</p>
+                    <p>Başlangıç: ${new Date(stream.startTime).toLocaleTimeString('tr-TR')}</p>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function watchStream(streamId) {
+            // Store selected stream and redirect to watch page
+            localStorage.setItem('selectedStreamId', streamId);
+            window.location.href = 'canli-izle-offline.html';
+        }
+
+        // Load streams on page load
+        window.addEventListener('load', loadLiveStreams);
+    </script>
+</body>
+</html>

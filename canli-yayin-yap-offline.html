@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canlı Yayın Yap (Offline) - Dünyanın En Acayip Sitesi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000000;
+            color: #ff0000;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-style: italic;
+        }
+        .button {
+            display: inline-block;
+            background-color: #ff0000;
+            color: #ffffff;
+            padding: 15px 30px;
+            margin: 10px;
+            text-decoration: none;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #cc0000;
+        }
+        input, select, textarea {
+            padding: 10px;
+            margin: 10px;
+            width: 300px;
+        }
+        #productList {
+            display: none;
+            background-color: #ffffff;
+            color: #000000;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 300px;
+            margin: 0 auto;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+        }
+        .productItem {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #ddd;
+        }
+        .productItem:hover {
+            background-color: #f0f0f0;
+        }
+        .productItem:last-child {
+            border-bottom: none;
+        }
+        #subtitles {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 18px;
+            display: none;
+        }
+        .video-container {
+            margin: 20px 0;
+        }
+        video {
+            width: 100%;
+            max-width: 640px;
+            border: 2px solid #ff0000;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1><i>Canlı Yayın Yap (Offline Mod)</i></h1>
+    <p>Ürünlerinizi seçin ve sloganınızı yazın. Bu mod backend olmadan çalışır.</p>
+
+    <!-- Ürün Seçimi -->
+    <div id="productSelection" style="margin: 20px 0; padding: 20px; border: 1px solid #ff0000; border-radius: 5px; background-color: #ffffff; color: #000000;">
+        <h3>Canlı Yayında Satılacak Ürünler</h3>
+        <p id="noProductsMessage" style="color: #ff0000; display: none;">Hiç ürün yok, ürün ekleyin.</p>
+        <div id="productCheckboxes"></div>
+    </div>
+
+    <label for="slogan">Slogan / Cümleler (Yayın altında görünecek):</label><br>
+    <textarea id="slogan" rows="4" placeholder="Sloganınızı yazın..."></textarea><br>
+
+    <div class="video-container">
+        <video id="localVideo" autoplay muted></video>
+    </div>
+
+    <div class="status" id="status">Hazır</div>
+
+    <button class="button" onclick="startBroadcast()" id="broadcastBtn">Yayın Başlat</button>
+    <button class="button" onclick="stopBroadcast()" id="stopBroadcastBtn" disabled>Yayın Durdur</button>
+    <a href="canli-yayin-ana.html" class="button">Ana Sayfa</a>
+    <a href="canli-yayin-satin-al.html" class="button">Süre Ekle</a>
+
+    <div id="subtitles"></div>
+
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser')) || { email: 'test@toptancilar.com', panel: 'toptancilar' };
+        let userProducts = [];
+        let selectedProducts = [];
+        let localStream;
+        let isBroadcasting = false;
+        let broadcastInterval;
+        let subtitlesInterval;
+
+        // Ürünleri yükle
+        function loadUserProducts() {
+            const products = JSON.parse(localStorage.getItem('products-toptancilar')) || [];
+            userProducts = products.filter(p => p.owner === currentUser.email);
+
+            const productCheckboxes = document.getElementById('productCheckboxes');
+            const noProductsMessage = document.getElementById('noProductsMessage');
+
+            if (userProducts.length === 0) {
+                noProductsMessage.style.display = 'block';
+                productCheckboxes.innerHTML = '';
+                return;
+            }
+
+            noProductsMessage.style.display = 'none';
+            productCheckboxes.innerHTML = '';
+
+            userProducts.forEach(product => {
+                const checkboxDiv = document.createElement('div');
+                checkboxDiv.style.margin = '5px 0';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = 'product-' + product.name;
+                checkbox.value = product.name;
+                checkbox.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        selectedProducts.push(product);
+                    } else {
+                        selectedProducts = selectedProducts.filter(p => p.name !== product.name);
+                    }
+                });
+
+                const label = document.createElement('label');
+                label.htmlFor = 'product-' + product.name;
+                label.textContent = `${product.name} - ${product.price} TL (Stok: ${product.stock})`;
+                label.style.marginLeft = '5px';
+
+                checkboxDiv.appendChild(checkbox);
+                checkboxDiv.appendChild(label);
+                productCheckboxes.appendChild(checkboxDiv);
+            });
+        }
+
+        async function startBroadcast() {
+            const slogan = document.getElementById('slogan').value;
+            const statusDiv = document.getElementById('status');
+            const broadcastBtn = document.getElementById('broadcastBtn');
+            const stopBroadcastBtn = document.getElementById('stopBroadcastBtn');
+
+            if (selectedProducts.length === 0) {
+                alert('Lütfen en az bir ürün seçin.');
+                return;
+            }
+
+            if (!slogan) {
+                alert('Lütfen slogan yazın.');
+                return;
+            }
+
+            // Yayın süresi kontrolü
+            const remainingTime = parseInt(localStorage.getItem('broadcastTimeRemaining') || '0');
+            if (remainingTime <= 0) {
+                alert('Yayın süreniz yok. Lütfen önce süre satın alın.');
+                window.location.href = 'canli-yayin-satin-al.html';
+                return;
+            }
+
+            try {
+                // Kamera erişimi
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
+                });
+
+                document.getElementById('localVideo').srcObject = localStream;
+                statusDiv.textContent = 'Yayın başladı!';
+                statusDiv.style.backgroundColor = '#4CAF50';
+
+                broadcastBtn.disabled = true;
+                stopBroadcastBtn.disabled = false;
+                isBroadcasting = true;
+
+                // Yayın bilgilerini localStorage'a kaydet
+                const streamData = {
+                    id: Date.now(),
+                    title: selectedProducts.map(p => p.name).join(', '),
+                    seller: currentUser.email,
+                    viewers: Math.floor(Math.random() * 100) + 50,
+                    status: 'live',
+                    startTime: new Date().toISOString(),
+                    products: selectedProducts,
+                    slogan: slogan
+                };
+
+                const streams = JSON.parse(localStorage.getItem('liveStreams')) || [];
+                streams.push(streamData);
+                localStorage.setItem('liveStreams', JSON.stringify(streams));
+
+                // Yayın süresini başlat
+                startBroadcastCountdown();
+
+                // Alt yazıları başlat
+                startSubtitles(slogan);
+
+                // Yayın aktivitesini kaydet
+                const activity = {
+                    panel: currentUser.panel,
+                    action: 'Canlı Yayın Başlatıldı - Ürünler: ' + selectedProducts.map(p => p.name).join(', '),
+                    time: new Date().toISOString()
+                };
+                const activities = JSON.parse(localStorage.getItem('liveBroadcastActivities')) || [];
+                activities.push(activity);
+                localStorage.setItem('liveBroadcastActivities', JSON.stringify(activities));
+
+                alert('Canlı yayın başlatıldı!\nÜrünler: ' + selectedProducts.map(p => p.name).join(', ') + '\nSlogan: ' + slogan);
+
+            } catch (error) {
+                statusDiv.textContent = 'Kamera erişimi reddedildi';
+                statusDiv.style.backgroundColor = '#f44336';
+                alert('Kamera/mikrofon erişimi reddedildi: ' + error.message);
+            }
+        }
+
+        function stopBroadcast() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                document.getElementById('localVideo').srcObject = null;
+            }
+
+            const statusDiv = document.getElementById('status');
+            const broadcastBtn = document.getElementById('broadcastBtn');
+            const stopBroadcastBtn = document.getElementById('stopBroadcastBtn');
+
+            statusDiv.textContent = 'Yayın durduruldu';
+            statusDiv.style.backgroundColor = '#333';
+
+            broadcastBtn.disabled = false;
+            stopBroadcastBtn.disabled = true;
+            isBroadcasting = false;
+
+            // Yayınları güncelle
+            const streams = JSON.parse(localStorage.getItem('liveStreams')) || [];
+            const updatedStreams = streams.map(s => {
+                if (s.status === 'live') {
+                    s.status = 'ended';
+                }
+                return s;
+            });
+            localStorage.setItem('liveStreams', JSON.stringify(updatedStreams));
+
+            if (broadcastInterval) clearInterval(broadcastInterval);
+            if (subtitlesInterval) clearInterval(subtitlesInterval);
+
+            alert('Yayın durduruldu.');
+        }
+
+        function startBroadcastCountdown() {
+            let remainingTime = parseInt(localStorage.getItem('broadcastTimeRemaining') || '0');
+
+            if (remainingTime > 0) {
+                broadcastInterval = setInterval(() => {
+                    remainingTime--;
+                    localStorage.setItem('broadcastTimeRemaining', remainingTime.toString());
+
+                    if (remainingTime <= 0) {
+                        clearInterval(broadcastInterval);
+                        alert('Yayın süreniz doldu! Yayın durduruluyor.');
+                        stopBroadcast();
+                    }
+                }, 1000);
+            }
+        }
+
+        function startSubtitles(slogan) {
+            const subtitleTexts = [
+                'Canlı yayına hoş geldiniz!',
+                slogan,
+                'Bu ürünler harika!',
+                'Şimdi satın alın!'
+            ];
+
+            let index = 0;
+            const subtitleInterval = setInterval(() => {
+                const subtitlesDiv = document.getElementById('subtitles');
+                subtitlesDiv.textContent = subtitleTexts[index % subtitleTexts.length];
+                subtitlesDiv.style.display = 'block';
+                index++;
+            }, 5000);
+
+            subtitlesInterval = subtitleInterval;
+
+            setTimeout(() => {
+                clearInterval(subtitleInterval);
+                document.getElementById('subtitles').style.display = 'none';
+            }, 120000);
+        }
+
+        // Sayfa yüklendiğinde ürünleri yükle
+        window.addEventListener('load', loadUserProducts);
+    </script>
+</body>
+</html>
